@@ -29,16 +29,28 @@ import {
   Package,
 } from 'lucide-react'
 
-function getProductEmoji(images: string | null | undefined, fallback = '📦'): string {
-  if (!images) return fallback
+function parseImages(images: string | null | undefined): string[] {
+  if (!images) return []
   try {
     const parsed = typeof images === 'string' ? JSON.parse(images) : images
-    if (Array.isArray(parsed) && parsed.length > 0) return parsed[0]
-    if (typeof parsed === 'string') return parsed
-    return fallback
+    if (Array.isArray(parsed)) return parsed
+    if (typeof parsed === 'string') return [parsed]
+    return []
   } catch {
-    return images || fallback
+    return [images]
   }
+}
+
+function isImageUrl(str: string): boolean {
+  return str.startsWith('/uploads/') || str.startsWith('http://') || str.startsWith('https://')
+}
+
+function getEmojiFallback(images: string | null | undefined, fallback = '📦'): string {
+  const parsed = parseImages(images)
+  for (const img of parsed) {
+    if (!isImageUrl(img)) return img
+  }
+  return fallback
 }
 
 export default function ProductDetailPage() {
@@ -166,10 +178,21 @@ export default function ProductDetailPage() {
         >
           <Card className="overflow-hidden border-gray-200">
             <CardContent className="p-0">
-              <div className="aspect-square bg-gradient-to-br from-[#FCD116] to-[#D4AA00] flex items-center justify-center p-12">
-                <span className="text-[120px] md:text-[160px] drop-shadow-lg">
-                  {getProductEmoji(product.images)}
-                </span>
+              <div className="aspect-square bg-gradient-to-br from-[#FCD116] to-[#D4AA00] flex items-center justify-center p-12 overflow-hidden">
+                {(() => {
+                  const imgs = parseImages(product.images)
+                  const realImg = imgs.find(isImageUrl)
+                  if (realImg) {
+                    return (
+                      <img
+                        src={realImg}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    )
+                  }
+                  return <span className="text-[120px] md:text-[160px] drop-shadow-lg">{getEmojiFallback(product.images)}</span>
+                })()}
               </div>
             </CardContent>
           </Card>

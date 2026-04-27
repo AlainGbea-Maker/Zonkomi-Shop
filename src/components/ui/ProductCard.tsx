@@ -19,16 +19,28 @@ const gradients = [
   'product-gradient-8',
 ]
 
-function getProductEmoji(images: string | null | undefined, fallback = '📦'): string {
-  if (!images) return fallback
+function parseImages(images: string | null | undefined): string[] {
+  if (!images) return []
   try {
     const parsed = typeof images === 'string' ? JSON.parse(images) : images
-    if (Array.isArray(parsed) && parsed.length > 0) return parsed[0]
-    if (typeof parsed === 'string') return parsed
-    return fallback
+    if (Array.isArray(parsed)) return parsed
+    if (typeof parsed === 'string') return [parsed]
+    return []
   } catch {
-    return images || fallback
+    return [images]
   }
+}
+
+function isImageUrl(str: string): boolean {
+  return str.startsWith('/uploads/') || str.startsWith('http://') || str.startsWith('https://')
+}
+
+function getEmojiFallback(images: string | null | undefined, fallback = '📦'): string {
+  const parsed = parseImages(images)
+  for (const img of parsed) {
+    if (!isImageUrl(img)) return img
+  }
+  return fallback
 }
 
 function getGradient(id: string) {
@@ -89,9 +101,22 @@ export default function ProductCard({ product }: ProductCardProps) {
         <CardContent className="p-0">
           {/* Product Image */}
           <div
-            className={`relative w-full aspect-square ${getGradient(product.id)} flex items-center justify-center`}
+            className={`relative w-full aspect-square ${getGradient(product.id)} flex items-center justify-center overflow-hidden`}
           >
-            <span className="text-5xl md:text-6xl">{getProductEmoji(product.images)}</span>
+            {(() => {
+              const imgs = parseImages(product.images)
+              const realImg = imgs.find(isImageUrl)
+              if (realImg) {
+                return (
+                  <img
+                    src={realImg}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                )
+              }
+              return <span className="text-5xl md:text-6xl">{getEmojiFallback(product.images)}</span>
+            })()}
             {discount > 0 && (
               <Badge className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5">
                 -{discount}%

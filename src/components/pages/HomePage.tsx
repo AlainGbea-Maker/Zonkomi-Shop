@@ -10,16 +10,33 @@ import { useAppStore, type Product, type Category } from '@/lib/store'
 import ProductCard from '@/components/ui/ProductCard'
 import { ArrowRight, Shield, RotateCcw, Award, CreditCard, Package, Users, Star, TrendingUp } from 'lucide-react'
 
-function getProductEmoji(images: string | null | undefined, fallback = '📦'): string {
-  if (!images) return fallback
+function parseImages(images: string | null | undefined): string[] {
+  if (!images) return []
   try {
     const parsed = typeof images === 'string' ? JSON.parse(images) : images
-    if (Array.isArray(parsed) && parsed.length > 0) return parsed[0]
-    if (typeof parsed === 'string') return parsed
-    return fallback
+    if (Array.isArray(parsed)) return parsed
+    if (typeof parsed === 'string') return [parsed]
+    return []
   } catch {
-    return images || fallback
+    return [images]
   }
+}
+
+function isImageUrl(str: string): boolean {
+  return str.startsWith('/uploads/') || str.startsWith('http://') || str.startsWith('https://')
+}
+
+function getProductEmoji(images: string | null | undefined, fallback = '📦'): string {
+  const parsed = parseImages(images)
+  for (const img of parsed) {
+    if (!isImageUrl(img)) return img
+  }
+  return fallback
+}
+
+function getProductImage(images: string | null | undefined): string | null {
+  const parsed = parseImages(images)
+  return parsed.find(isImageUrl) || null
 }
 
 const fadeInUp = {
@@ -321,8 +338,16 @@ export default function HomePage() {
               <Card className="border-2 border-red-200 overflow-hidden">
                 <CardContent className="p-0">
                   <div className="flex flex-col md:flex-row">
-                    <div className="md:w-1/3 aspect-square md:aspect-auto bg-gradient-to-br from-red-500 to-orange-400 flex items-center justify-center p-8">
-                      <span className="text-8xl">{getProductEmoji(dealProduct.images)}</span>
+                    <div className="md:w-1/3 aspect-square md:aspect-auto bg-gradient-to-br from-red-500 to-orange-400 flex items-center justify-center p-8 overflow-hidden">
+                      {getProductImage(dealProduct.images) ? (
+                        <img
+                          src={getProductImage(dealProduct.images)!}
+                          alt={dealProduct.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-8xl">{getProductEmoji(dealProduct.images)}</span>
+                      )}
                     </div>
                     <div className="flex-1 p-6 md:p-8 flex flex-col justify-center">
                       <Badge variant="secondary" className="bg-red-100 text-red-700 w-fit mb-3">
