@@ -16,6 +16,32 @@ import {
   ArrowRight,
 } from 'lucide-react'
 
+function formatGhanaPhone(phone: string | undefined | null): string {
+  if (!phone) return ''
+  // If already has +233 prefix, just return as-is
+  if (phone.startsWith('+233')) {
+    const digits = phone.replace(/\D/g, '').replace(/^233/, '')
+    if (digits.length >= 9) {
+      const formatted = `+233 ${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 9)}`
+      return formatted
+    }
+    return phone
+  }
+  // If starts with 0, convert to +233
+  const digits = phone.replace(/\D/g, '')
+  if (digits.startsWith('0')) {
+    const cleaned = digits.slice(1)
+    if (cleaned.length >= 9) {
+      return `+233 ${cleaned.slice(0, 2)} ${cleaned.slice(2, 5)} ${cleaned.slice(5, 9)}`
+    }
+  }
+  // Fallback: just return with +233
+  if (digits.length >= 9) {
+    return `+233 ${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 9)}`
+  }
+  return phone
+}
+
 export default function AccountPage() {
   const { navigate } = useAppStore()
   const { user, logout } = useUserStore()
@@ -63,7 +89,10 @@ export default function AccountPage() {
                   {user.phone && (
                     <div className="flex items-center gap-3 text-sm text-gray-600">
                       <Phone className="w-4 h-4 text-gray-400" />
-                      {user.phone}
+                      <span className="flex items-center gap-1.5">
+                        <span className="text-base">🇬🇭</span>
+                        {formatGhanaPhone(user.phone)}
+                      </span>
                     </div>
                   )}
                   {(user.address || user.city) && (

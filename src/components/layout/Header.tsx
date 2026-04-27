@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAppStore, useCartStore, useUserStore, type Category } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,6 +32,8 @@ import {
   Heart,
   Settings,
   MapPin,
+  X,
+  Sparkles,
 } from 'lucide-react'
 
 
@@ -41,9 +44,21 @@ export default function Header() {
   const [categories, setCategories] = useState<Category[]>([])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [catHovered, setCatHovered] = useState(false)
+  const [welcomeDismissed, setWelcomeDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return sessionStorage.getItem('zonkomi-welcome-dismissed') === 'true'
+  })
   const searchInputRef = useRef<HTMLInputElement>(null)
   const catTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const itemCount = getItemCount()
+
+  // Compute welcome visibility
+  const showWelcome = !!(user?.name && !welcomeDismissed)
+
+  const dismissWelcome = () => {
+    setWelcomeDismissed(true)
+    sessionStorage.setItem('zonkomi-welcome-dismissed', 'true')
+  }
 
   useEffect(() => {
     fetch('/api/categories')
@@ -67,6 +82,36 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full">
+      {/* Welcome Banner - shown after sign in */}
+      <AnimatePresence>
+        {showWelcome && user && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden bg-gradient-to-r from-[#FCD116] via-[#FFE066] to-[#FCD116]"
+          >
+            <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-10">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#8B6914]" />
+                <p className="text-sm font-semibold text-[#3D2E00]">
+                  Welcome back, <span className="text-[#8B6914]">{user.name.split(' ')[0]}</span>! 
+                  <span className="font-normal text-[#5C4400]"> Glad to have you at Zonkomi Shop</span>
+                </p>
+              </div>
+              <button
+                onClick={dismissWelcome}
+                className="text-[#8B6914] hover:text-[#3D2E00] transition-colors p-1 rounded-full hover:bg-black/5"
+                aria-label="Dismiss"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Top bar - dark */}
       <div className="bg-[#002B1B] text-white text-xs">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-8">

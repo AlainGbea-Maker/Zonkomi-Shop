@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { useAppStore, useUserStore } from '@/lib/store'
 import { Shield } from 'lucide-react'
-import { ArrowLeft, Mail, User, Loader2, Zap } from 'lucide-react'
+import { ArrowLeft, Mail, User, Loader2, Zap, Phone } from 'lucide-react'
 
 export default function LoginPage() {
   const { navigate } = useAppStore()
@@ -21,6 +21,7 @@ export default function LoginPage() {
   const [loginEmail, setLoginEmail] = useState('')
   const [registerName, setRegisterName] = useState('')
   const [registerEmail, setRegisterEmail] = useState('')
+  const [registerPhone, setRegisterPhone] = useState('')
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,7 +53,11 @@ export default function LoginPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!registerName.trim() || !registerEmail.trim()) {
-      setError('Please fill in all fields')
+      setError('Please fill in all required fields')
+      return
+    }
+    if (registerPhone.trim() && registerPhone.replace(/\D/g, '').length < 10) {
+      setError('Please enter a valid Ghana phone number')
       return
     }
     setLoading(true)
@@ -61,7 +66,7 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: registerName, email: registerEmail }),
+        body: JSON.stringify({ name: registerName, email: registerEmail, phone: registerPhone ? `+233${registerPhone.replace(/^0/, '')}` : '', country: 'GH' }),
       })
       if (!res.ok) throw new Error()
       const data = await res.json()
@@ -243,6 +248,23 @@ export default function LoginPage() {
                         onChange={(e) => setRegisterEmail(e.target.value)}
                         placeholder="you@example.com"
                         className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="reg-phone">Phone Number <span className="text-xs text-gray-400 font-normal">(optional)</span></Label>
+                    <div className="relative mt-1">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <span className="absolute left-10 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium border-r border-gray-200 pr-2">🇬🇭 +233</span>
+                      <Input
+                        id="reg-phone"
+                        type="tel"
+                        value={registerPhone}
+                        onChange={(e) => setRegisterPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        placeholder="24 123 4567"
+                        className="pl-[5.5rem]"
+                        maxLength={10}
                       />
                     </div>
                   </div>

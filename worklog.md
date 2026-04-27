@@ -229,3 +229,24 @@ Stage Summary:
 - Floating trigger: golden pulse (eligible), locked gray (below threshold)
 - Sound toggle, copy-to-clipboard coupon, 60-particle confetti
 - Multi-touchpoint deployment: HomePage promo section, ProductDetailPage CTA, CartPage banners, floating buttons
+---
+Task ID: 1
+Agent: Main Agent
+Task: Add welcome greeting after sign-in and fix phone number to Ghana format
+
+Work Log:
+- Read all relevant files: Header.tsx, LoginPage.tsx, CheckoutPage.tsx, AccountPage.tsx, store.ts, auth routes
+- Added welcome banner in Header.tsx with AnimatePresence + dismissible golden banner showing "Welcome back, [FirstName]! Glad to have you at Zonkomi Shop"
+- Added phone number field with Ghana 🇬🇭 +233 prefix to registration form in LoginPage.tsx
+- Added formatGhanaPhone() utility in AccountPage.tsx for consistent phone display
+- Updated phone display in AccountPage to show 🇬🇭 +233 XX XXX XXXX format
+- Updated phone display in CheckoutPage review step with Ghana flag + format
+- Updated demo user (demo@zonkomishop.com) to use Ghana details: Kwame Asante, +233241234567, Accra, Greater Accra, GH
+- Updated auth/register to default country to GH and prepend +233 to phone
+- All lint checks pass
+
+Stage Summary:
+- Welcome banner appears at top of page when user is signed in, dismissible with X button, persists dismissed state via sessionStorage
+- Phone fields across the app use Ghana +233 format with 🇬🇭 flag emoji
+- Demo user now has Ghana identity instead of US
+

@@ -830,7 +830,7 @@ export default function CheckoutPage() {
                         <p>{shipping.city}, {shipping.region}</p>
                         <p className="flex items-center gap-1.5 text-gray-500">
                           <Phone className="w-3.5 h-3.5" />
-                          +233 {shipping.phone}
+                          🇬🇭 +233 {shipping.phone.replace(/^0/, '')}
                         </p>
                       </div>
                     </div>
