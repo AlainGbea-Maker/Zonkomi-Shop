@@ -1,7 +1,7 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
-import { useAppStore } from '@/lib/store'
+import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { useAppStore, rehydrateStores } from '@/lib/store'
 import { AnimatePresence, motion } from 'framer-motion'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
@@ -31,10 +31,25 @@ const pageComponents: Record<string, React.ComponentType> = {
   admin: AdminDashboard,
 }
 
+// useSyncExternalStore ensures server returns false (spinner) and client returns true (content)
+// without any hydration mismatch
+const emptySubscribe = () => () => {}
+function useHydrated() {
+  return useSyncExternalStore(emptySubscribe, () => true, () => false)
+}
+
 export default function Home() {
   const { view, selectedProductId, selectedOrderNumber } = useAppStore()
-  const emptySubscribe = () => () => {}
-  const hydrated = useSyncExternalStore(emptySubscribe, () => true, () => false)
+  const mounted = useHydrated()
+  const rehydrated = useRef(false)
+
+  // Rehydrate persisted stores from localStorage on first client mount
+  useEffect(() => {
+    if (!rehydrated.current) {
+      rehydrated.current = true
+      rehydrateStores()
+    }
+  }, [])
 
   const PageComponent = pageComponents[view] || HomePage
 
@@ -49,7 +64,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
       <main className="flex-1">
-        {hydrated ? (
+        {mounted ? (
           <AnimatePresence mode="wait">
             <motion.div
               key={getAnimKey()}

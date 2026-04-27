@@ -1,8 +1,6 @@
 'use client'
 
 import { useAppStore } from '@/lib/store'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { ArrowUp } from 'lucide-react'
 
 export default function Footer() {
@@ -128,7 +126,7 @@ export default function Footer() {
               </li>
               <li>
                 <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Shipping & Returns
+                  Shipping &amp; Returns
                 </span>
               </li>
               <li>
@@ -153,8 +151,8 @@ export default function Footer() {
             <img src="/logo.png" alt="Zonkomi Shop" className="w-8 h-8 rounded-md object-contain" />
             <span className="font-bold text-lg">Zonkomi Shop</span>
           </div>
-          <p className="text-xs text-gray-400">
-            &copy; {new Date().getFullYear()} Zonkomi Shop. All rights reserved. Premium refurbished electronics.
+          <p className="text-xs text-gray-400" suppressHydrationWarning>
+            &copy; 2025 Zonkomi Shop. All rights reserved. Premium refurbished electronics.
           </p>
         </div>
       </div>

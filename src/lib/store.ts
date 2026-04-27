@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 // ==================== TYPES ====================
 export interface Product {
@@ -86,22 +86,50 @@ export interface Review {
   user?: { name: string }
 }
 
-export type AppView = 
-  | 'home' 
-  | 'products' 
-  | 'product-detail' 
-  | 'cart' 
-  | 'checkout' 
+export type AppView =
+  | 'home'
+  | 'products'
+  | 'product-detail'
+  | 'cart'
+  | 'checkout'
   | 'order-confirmation'
-  | 'orders' 
+  | 'orders'
   | 'order-detail'
   | 'login'
   | 'account'
   | 'admin'
 
+// Shared persist options that skip server-side hydration
+// to prevent hydration mismatches from localStorage
+const persistOptions = (name: string) => ({
+  name,
+  storage: createJSONStorage(() => {
+    // Only use localStorage on the client
+    if (typeof window === 'undefined') {
+      return {
+        getItem: () => null,
+        setItem: () => {},
+        removeItem: () => {},
+      }
+    }
+    return localStorage
+  }),
+  // Skip automatic hydration - we rehydrate on mount in components
+  skipHydration: true,
+})
+
+// Rehydrate all persist stores from localStorage (call once on client mount)
+export function rehydrateStores() {
+  if (typeof window === 'undefined') return
+  useCartStore.persist.rehydrate()
+  useUserStore.persist.rehydrate()
+  useWishlistStore.persist.rehydrate()
+}
+
 // ==================== CART STORE ====================
 interface CartStore {
   items: CartItem[]
+  _hydrated: boolean
   addItem: (product: Product, quantity?: number) => void
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
@@ -117,6 +145,7 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      _hydrated: false,
       addItem: (product, quantity = 1) => {
         set((state) => {
           const existing = state.items.find((i) => i.productId === product.id)
@@ -158,7 +187,7 @@ export const useCartStore = create<CartStore>()(
       getTotal: () => get().getSubtotal() + get().getTax() + get().getShipping(),
       getShipping: () => (get().getSubtotal() >= 500 ? 0 : 49.99),
     }),
-    { name: 'zonkomi-cart' }
+    persistOptions('zonkomi-cart')
   )
 )
 
@@ -203,6 +232,7 @@ export const useAppStore = create<AppStore>()((set) => ({
 interface UserStore {
   user: { id: string; email: string; name: string; phone?: string; address?: string; city?: string; state?: string; zipCode?: string; role?: string } | null
   token: string | null
+  _hydrated: boolean
   setUser: (user: any, token?: string) => void
   logout: () => void
   isAdmin: () => boolean
@@ -213,11 +243,12 @@ export const useUserStore = create<UserStore>()(
     (set, get) => ({
       user: null,
       token: null,
+      _hydrated: false,
       setUser: (user, token) => set({ user, token: token || null }),
       logout: () => set({ user: null, token: null }),
       isAdmin: () => get().user?.role === 'admin',
     }),
-    { name: 'zonkomi-user' }
+    persistOptions('zonkomi-user')
   )
 )
 
@@ -253,6 +284,6 @@ export const useWishlistStore = create<WishlistStore>()(
       hasItem: (productId) => get().items.includes(productId),
       clearAll: () => set({ items: [] }),
     }),
-    { name: 'zonkomi-wishlist' }
+    persistOptions('zonkomi-wishlist')
   )
 )
