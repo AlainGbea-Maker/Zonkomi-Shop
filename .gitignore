@@ -61,3 +61,10 @@ upload/
 download/
 mini-services/
 examples/
+
+# User uploaded files
+public/uploads/
+
+# Worklog
+worklog.md
+keep-alive.sh
