@@ -88,9 +88,11 @@ export default function Header() {
             onClick={() => navigate('home')}
             className="flex-shrink-0 flex items-center gap-1 text-white hover:outline hover:outline-1 hover:outline-white/50 rounded p-1.5 transition-colors"
           >
-            <div className="w-8 h-8 bg-[#FCD116] rounded-md flex items-center justify-center">
-              <span className="text-white font-bold text-lg">Z</span>
-            </div>
+            <img
+              src="/logo.png"
+              alt="Zonkomi Shop"
+              className="w-9 h-9 rounded-md object-contain"
+            />
             <div className="hidden sm:block">
               <div className="text-white font-bold text-lg leading-none">Zonkomi</div>
               <div className="text-gray-300 text-[10px] leading-none">.shop</div>
@@ -253,9 +255,7 @@ export default function Header() {
                 <SheetHeader className="bg-[#004D2E] text-white p-4 rounded-none">
                   <SheetTitle className="text-white">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 bg-[#FCD116] rounded-md flex items-center justify-center">
-                        <span className="text-white font-bold">Z</span>
-                      </div>
+                      <img src="/logo.png" alt="Zonkomi Shop" className="w-7 h-7 rounded-md object-contain" />
                       Zonkomi Shop
                     </div>
                   </SheetTitle>

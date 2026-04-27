@@ -150,9 +150,7 @@ export default function Footer() {
       <div className="bg-[#001F14] text-white">
         <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-[#FCD116] rounded-md flex items-center justify-center">
-              <span className="text-white font-bold text-sm">Z</span>
-            </div>
+            <img src="/logo.png" alt="Zonkomi Shop" className="w-8 h-8 rounded-md object-contain" />
             <span className="font-bold text-lg">Zonkomi Shop</span>
           </div>
           <p className="text-xs text-gray-400">

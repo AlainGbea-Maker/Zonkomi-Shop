@@ -112,9 +112,11 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 bg-[#FCD116] rounded-2xl flex items-center justify-center">
-            <span className="text-white font-bold text-2xl">Z</span>
-          </div>
+          <img
+            src="/logo.png"
+            alt="Zonkomi Shop"
+            className="w-16 h-16 mx-auto mb-4 rounded-2xl object-contain"
+          />
           <h1 className="text-2xl font-bold text-gray-900">
             {mode === 'login' ? 'Welcome Back' : 'Create Account'}
           </h1>

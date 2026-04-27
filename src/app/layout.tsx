@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: "Shop premium refurbished electronics at unbeatable prices. Laptops, phones, tablets, and more with warranty and free returns.",
   keywords: ["refurbished electronics", "used laptops", "refurbished phones", "discount electronics", "Zonkomi Shop"],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/favicon.ico",
   },
 };
 
