@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useCartStore, useAppStore, type Product } from '@/lib/store'
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Shield, Truck, AlertTriangle, RefreshCw } from 'lucide-react'
+import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Shield, Truck, AlertTriangle, RefreshCw, Gift } from 'lucide-react'
 
 function parseImages(images: string | null | undefined): string[] {
   if (!images) return []
@@ -129,6 +129,9 @@ export default function CartPage() {
   const total = getTotal()
   const itemCount = getItemCount()
   const freeShippingThreshold = 500
+  const spinThreshold = 799
+  const amountNeededForSpin = Math.max(0, spinThreshold - subtotal)
+  const spinProgress = Math.min(100, (subtotal / spinThreshold) * 100)
 
   if (items.length === 0) {
     return (
@@ -200,6 +203,62 @@ export default function CartPage() {
           </Button>
         </div>
       </div>
+
+      {/* Spin & Win promotion banner */}
+      {subtotal > 0 && subtotal < spinThreshold && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 bg-gradient-to-r from-[#002B1B] to-[#004D2E] rounded-2xl text-white relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#FCD116]/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#FCD116]/5 rounded-full translate-y-1/2 -translate-x-1/4" />
+          <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-[#FCD116]/20 flex items-center justify-center flex-shrink-0">
+              <Gift className="w-6 h-6 text-[#FCD116]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-sm">🎁 Unlock Spin & Win!</p>
+              <p className="text-xs text-gray-300 mt-0.5">
+                Add <span className="text-[#FCD116] font-bold">GH₵{amountNeededForSpin.toFixed(2)}</span> more for a chance to win up to <span className="text-[#FCD116] font-bold">20% off!</span>
+              </p>
+              <div className="mt-2 w-full bg-white/20 rounded-full h-2 max-w-xs">
+                <div
+                  className="bg-gradient-to-r from-[#FCD116] to-[#D4AA00] rounded-full h-2 transition-all duration-500"
+                  style={{ width: `${spinProgress}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-gray-400 mt-1">{spinProgress.toFixed(0)}% of GH₵{spinThreshold}</p>
+            </div>
+            <button
+              onClick={() => navigate('products')}
+              className="px-4 py-2 bg-[#FCD116] hover:bg-[#D4AA00] text-[#002B1B] rounded-full text-xs font-bold transition-colors flex-shrink-0"
+            >
+              Shop More
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Qualified for spin - celebration banner */}
+      {subtotal >= spinThreshold && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 bg-gradient-to-r from-[#FCD116] to-[#D4AA00] rounded-2xl text-[#002B1B] relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="relative flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center flex-shrink-0">
+              <Gift className="w-6 h-6 text-[#002B1B]" />
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-sm">🎉 You qualify for Spin & Win!</p>
+              <p className="text-xs text-[#002B1B]/70 mt-0.5">Click the gift button at the bottom-right to spin for exclusive discounts!</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Cart Items */}

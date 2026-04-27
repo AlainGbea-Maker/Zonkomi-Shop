@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Gift, PartyPopper, Clock } from 'lucide-react'
+import { X, Gift, PartyPopper, Clock, ShoppingCart } from 'lucide-react'
+import { useCartStore } from '@/lib/store'
+
+// The minimum cart subtotal required to unlock the wheel
+const SPIN_THRESHOLD = 799
 
 interface Prize {
   name: string
@@ -47,6 +51,10 @@ function getSessionId(): string {
 }
 
 export default function SpinWheel() {
+  const getSubtotal = useCartStore((s) => s.getSubtotal)
+  const subtotal = getSubtotal()
+  const isEligible = subtotal >= SPIN_THRESHOLD
+
   const [open, setOpen] = useState(false)
   const [spinning, setSpinning] = useState(false)
   const [rotation, setRotation] = useState(0)
@@ -56,6 +64,7 @@ export default function SpinWheel() {
   const [checking, setChecking] = useState(true)
   const [error, setError] = useState('')
   const [confetti, setConfetti] = useState(false)
+  const [wasEligibleWhenOpened, setWasEligibleWhenOpened] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -78,6 +87,12 @@ export default function SpinWheel() {
     } finally {
       setChecking(false)
     }
+  }
+
+  const handleOpen = () => {
+    if (!isEligible) return
+    setWasEligibleWhenOpened(true)
+    setOpen(true)
   }
 
   const handleSpin = useCallback(async () => {
@@ -150,6 +165,7 @@ export default function SpinWheel() {
 
   const handleClose = () => {
     setOpen(false)
+    setWasEligibleWhenOpened(false)
     // Reset state after close animation
     setTimeout(() => {
       setShowResult(false)
@@ -169,32 +185,80 @@ export default function SpinWheel() {
     return ''
   }
 
+  // How much more the user needs to add to unlock the wheel
+  const amountNeeded = Math.max(0, SPIN_THRESHOLD - subtotal)
+  const progress = Math.min(100, (subtotal / SPIN_THRESHOLD) * 100)
+
   return (
     <>
-      {/* Floating Trigger Button */}
-      {!open && (
-        <motion.button
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 2, type: 'spring', stiffness: 200, damping: 15 }}
-          onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 z-50 group"
-          title="Spin & Win!"
-        >
-          <div className="relative">
-            {/* Pulse ring */}
-            <span className="absolute inset-0 rounded-full bg-[#FCD116] animate-ping opacity-30" />
-            {/* Button */}
-            <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-[#FCD116] to-[#D4AA00] shadow-lg shadow-yellow-300/50 flex items-center justify-center hover:scale-110 transition-transform duration-300 border-4 border-white">
-              <Gift className="w-7 h-7 text-[#002B1B]" />
+      {/* Floating Trigger Button - only show when eligible */}
+      <AnimatePresence>
+        {isEligible && !open && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+            onClick={handleOpen}
+            className="fixed bottom-6 right-6 z-50 group"
+            title="Spin & Win! - Your order qualifies!"
+          >
+            <div className="relative">
+              {/* Pulse ring */}
+              <span className="absolute inset-0 rounded-full bg-[#FCD116] animate-ping opacity-30" />
+              {/* Button */}
+              <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-[#FCD116] to-[#D4AA00] shadow-lg shadow-yellow-300/50 flex items-center justify-center hover:scale-110 transition-transform duration-300 border-4 border-white">
+                <Gift className="w-7 h-7 text-[#002B1B]" />
+              </div>
+              {/* Badge */}
+              <div className="absolute -top-1 -right-1 bg-[#CE1126] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-lg">
+                WIN
+              </div>
+              {/* Tooltip */}
+              <div className="absolute bottom-full right-0 mb-2 w-48 p-2.5 bg-[#002B1B] text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                <p className="font-bold text-[#FCD116]">You qualify! 🎉</p>
+                <p className="text-gray-300 mt-0.5">Spin for exclusive discounts</p>
+                <div className="absolute top-full right-6 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#002B1B]" />
+              </div>
             </div>
-            {/* Badge */}
-            <div className="absolute -top-1 -right-1 bg-[#CE1126] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-lg">
-              WIN
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Cart progress indicator - show when user has items but below threshold */}
+      <AnimatePresence>
+        {!isEligible && subtotal > 0 && !open && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-6 right-6 z-50"
+          >
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-gray-300 flex items-center justify-center relative cursor-default">
+              <Gift className="w-5 h-5 text-gray-400" />
+              {/* Lock icon overlay */}
+              <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gray-500 flex items-center justify-center">
+                <ShoppingCart className="w-3 h-3 text-white" />
+              </div>
             </div>
-          </div>
-        </motion.button>
-      )}
+            {/* Tooltip */}
+            <div className="absolute bottom-full right-0 mb-2 w-52 p-3 bg-white text-gray-800 text-xs rounded-xl shadow-xl border border-gray-100 pointer-events-none">
+              <p className="font-bold text-gray-900 mb-1">🎁 Unlock Spin & Win!</p>
+              <p className="text-gray-500 mb-2">
+                Add <span className="font-bold text-[#C59F00]">GH₵{amountNeeded.toFixed(2)}</span> more to qualify
+              </p>
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                <div
+                  className="bg-gradient-to-r from-[#FCD116] to-[#D4AA00] rounded-full h-1.5 transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-gray-400 mt-1">{progress.toFixed(0)}% of GH₵{SPIN_THRESHOLD}</p>
+              <div className="absolute top-full right-4 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Modal */}
       <AnimatePresence>
@@ -236,6 +300,10 @@ export default function SpinWheel() {
                   <Gift className="w-10 h-10 text-[#FCD116] mx-auto mb-2" />
                   <h2 className="text-2xl font-bold text-white">Spin & Win!</h2>
                   <p className="text-sm text-gray-300 mt-1">Spin once daily for exclusive discounts</p>
+                  <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-[#FCD116]/20 rounded-full">
+                    <ShoppingCart className="w-3.5 h-3.5 text-[#FCD116]" />
+                    <span className="text-xs text-[#FCD116] font-medium">Order GH₵{subtotal.toFixed(2)} — Qualifies!</span>
+                  </div>
                 </div>
               </div>
 

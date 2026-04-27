@@ -146,3 +146,24 @@ Stage Summary:
 - Coupons auto-populate in checkout from wheel wins
 - Confetti animation on real wins
 - Daily spin limit prevents abuse
+---
+Task ID: 1
+Agent: Main Agent
+Task: Update Spin Wheel to only appear when cart total >= GH₵ 799
+
+Work Log:
+- Read existing SpinWheel.tsx, CartPage.tsx, CheckoutPage.tsx, store.ts, and api/spin/route.ts
+- Updated SpinWheel.tsx to import useCartStore and check cart subtotal against SPIN_THRESHOLD (799)
+- Floating gift button now only appears when cart >= GH₵ 799 (with animate enter/exit)
+- Added locked gift icon with tooltip showing progress when cart > 0 but < 799
+- Modal header shows current order amount and qualification status
+- Added promotional banner on CartPage for sub-799 orders with progress bar and "Shop More" button
+- Added celebration banner on CartPage for qualifying orders (>= 799)
+- Updated GH₵25 Off prize minOrder from 300 to 799 in spin API
+- Lint passes clean, dev server compiles without errors
+
+Stage Summary:
+- Spin wheel trigger button is now gated behind GH₵ 799 cart minimum
+- Users with items in cart but below threshold see a locked icon with progress tooltip
+- Cart page shows contextual banners encouraging users to reach the threshold
+- All modest prizes preserved: 5%, 10%, 15%, 20% off, GH₵10 off, GH₵25 off, Free Shipping, Try Again

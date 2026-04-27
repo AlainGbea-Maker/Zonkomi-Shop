@@ -9,7 +9,7 @@ const PRIZES = [
   { name: '10% Off',      type: 'percent',   value: 10, weight: 12, color: '#F97316' },
   { name: 'GH₵10 Off',    type: 'fixed',    value: 10, weight: 8,  color: '#06B6D4' },
   { name: '15% Off',      type: 'percent',   value: 15, weight: 5,  color: '#8B5CF6' },
-  { name: 'GH₵25 Off',    type: 'fixed',    value: 25, weight: 3,  color: '#EC4899', minOrder: 300 },
+  { name: 'GH₵25 Off',    type: 'fixed',    value: 25, weight: 3,  color: '#EC4899', minOrder: 799 },
   { name: '20% Off',      type: 'percent',   value: 20, weight: 2,  color: '#EF4444' },
 ]
 
