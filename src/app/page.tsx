@@ -16,6 +16,7 @@ import OrderDetailPage from '@/components/pages/OrderDetailPage'
 import AccountPage from '@/components/pages/AccountPage'
 import LoginPage from '@/components/pages/LoginPage'
 import AdminDashboard from '@/components/pages/AdminDashboard'
+import SpinWheel from '@/components/SpinWheel'
 
 const pageComponents: Record<string, React.ComponentType> = {
   home: HomePage,
@@ -83,6 +84,7 @@ export default function Home() {
         )}
       </main>
       <Footer />
+      {mounted && <SpinWheel />}
     </div>
   )
 }

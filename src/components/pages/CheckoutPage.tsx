@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -23,6 +23,8 @@ import {
   Truck,
   ShieldCheck,
   Phone,
+  Tag,
+  X,
 } from 'lucide-react'
 
 function parseImages(images: string | null | undefined): string[] {
@@ -162,6 +164,27 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string; type: string; value: number; name: string; minOrder?: number
+  } | null>(null)
+  const [couponInput, setCouponInput] = useState('')
+  const [couponError, setCouponError] = useState('')
+
+  // Load coupon from localStorage (from wheel spin)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('zonkomi-coupon')
+      if (saved) {
+        const coupon = JSON.parse(saved)
+        setCouponInput(coupon.code)
+      }
+    } catch {
+      // ignore
+    }
+  }, [])
+
   const [shipping, setShipping] = useState<ShippingInfo>({
     name: user?.name || '',
     address: user?.address || '',
@@ -183,7 +206,57 @@ export default function CheckoutPage() {
   const subtotal = getSubtotal()
   const tax = getTax()
   const shippingCost = getShipping()
-  const total = getTotal()
+
+  // Calculate discount from coupon
+  const getDiscount = () => {
+    if (!appliedCoupon) return 0
+    if (appliedCoupon.type === 'percent') return Math.round(subtotal * appliedCoupon.value / 100 * 100) / 100
+    if (appliedCoupon.type === 'fixed') {
+      if (appliedCoupon.minOrder && subtotal < appliedCoupon.minOrder) return 0
+      return Math.min(appliedCoupon.value, subtotal)
+    }
+    if (appliedCoupon.type === 'shipping') return shippingCost
+    return 0
+  }
+
+  const discount = getDiscount()
+  const discountedSubtotal = subtotal - discount
+  const finalShipping = appliedCoupon?.type === 'shipping' ? 0 : shippingCost
+  const adjustedSubtotal = discountedSubtotal
+  const finalTax = Math.round(adjustedSubtotal * 0.0833 * 100) / 100
+  const total = adjustedSubtotal + finalTax + finalShipping
+
+  const applyCoupon = () => {
+    setCouponError('')
+    const code = couponInput.trim().toUpperCase()
+    if (!code) return
+
+    // Validate against saved coupons
+    try {
+      const saved = localStorage.getItem('zonkomi-coupon')
+      if (saved) {
+        const coupon = JSON.parse(saved)
+        if (coupon.code.toUpperCase() === code) {
+          if (coupon.minOrder && subtotal < coupon.minOrder) {
+            setCouponError(`Minimum order of GH₵${coupon.minOrder} required`)
+            return
+          }
+          setAppliedCoupon(coupon)
+          setCouponCode(coupon.code)
+          return
+        }
+      }
+    } catch {
+      // ignore
+    }
+    setCouponError('Invalid coupon code. Try spinning the wheel!')
+  }
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null)
+    setCouponCode('')
+    setCouponError('')
+  }
 
   if (items.length === 0) {
     return (
@@ -821,6 +894,11 @@ export default function CheckoutPage() {
                   <>
                     <Package className="w-4 h-4 mr-2" />
                     Place Order - GH₵{total.toFixed(2)}
+                    {appliedCoupon && discount > 0 && (
+                      <span className="ml-1 text-xs line-through text-gray-400">
+                        GH₵{(total + discount).toFixed(2)}
+                      </span>
+                    )}
                   </>
                 )}
               </Button>
@@ -862,17 +940,63 @@ export default function CheckoutPage() {
                   <span className="text-gray-600">Subtotal</span>
                   <span className="font-medium">GH₵{subtotal.toFixed(2)}</span>
                 </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span className="flex items-center gap-1">
+                      <Tag className="w-3 h-3" />
+                      Discount ({appliedCoupon?.name})
+                    </span>
+                    <span className="font-medium">-GH₵{discount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Shipping</span>
-                  <span className={shippingCost === 0 ? 'text-green-600 font-medium' : 'font-medium'}>
-                    {shippingCost === 0 ? 'FREE' : `GH₵${shippingCost.toFixed(2)}`}
+                  <span className={finalShipping === 0 ? 'text-green-600 font-medium' : 'font-medium'}>
+                    {finalShipping === 0 ? 'FREE' : `GH₵${finalShipping.toFixed(2)}`}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Tax (VAT)</span>
-                  <span className="font-medium">GH₵{tax.toFixed(2)}</span>
+                  <span className="font-medium">GH₵{finalTax.toFixed(2)}</span>
                 </div>
               </div>
+
+              {/* Coupon code input */}
+              {!appliedCoupon && (
+                <div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Discount code"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value)}
+                      className="h-9 text-sm uppercase"
+                      onKeyDown={(e) => e.key === 'Enter' && applyCoupon()}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-9 px-3 text-xs text-[#C59F00] border-[#FCD116]/30 hover:bg-yellow-50 shrink-0"
+                      onClick={applyCoupon}
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                  {couponError && <p className="text-[11px] text-red-500 mt-1">{couponError}</p>}
+                </div>
+              )}
+
+              {appliedCoupon && (
+                <div className="flex items-center justify-between p-2.5 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Tag className="w-3.5 h-3.5 text-green-600" />
+                    <span className="text-xs font-medium text-green-800">{appliedCoupon.code}</span>
+                    <span className="text-[10px] text-green-600">({appliedCoupon.name})</span>
+                  </div>
+                  <button onClick={removeCoupon} className="text-green-600 hover:text-red-500 transition-colors">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
               <Separator />
               <div className="flex justify-between">
                 <span className="font-bold text-gray-900">Total</span>

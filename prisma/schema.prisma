@@ -174,3 +174,19 @@ model Wishlist {
   @@unique([userId, productId])
   @@index([userId])
 }
+
+model Spin {
+  id        String   @id @default(cuid())
+  sessionId String   // anonymous session identifier
+  userId    String?
+  prize     String   // the prize name
+  prizeType String   // "percent" | "shipping" | "fixed" | "none"
+  prizeValue Float  @default(0)
+  code      String?  // discount code if applicable
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([createdAt])
+}

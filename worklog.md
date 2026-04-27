@@ -128,3 +128,21 @@ Stage Summary:
 - Admin can now manage products with image uploads from the dashboard
 - Products tab alongside existing order management tabs (Recent Orders, All Orders, Order Status)
 - All product display supports both real images and emoji fallbacks
+---
+Task ID: 1
+Agent: Main Agent
+Task: Add gamified Wheel of Fortune discount feature
+
+Work Log:
+- Added Spin model to Prisma schema for tracking user spins
+- Created /api/spin endpoint with weighted prize distribution and rate limiting (1 spin/day)
+- Built SpinWheel component with CSS animated wheel, confetti effects, and prize reveal
+- Added floating gift button trigger on all pages
+- Integrated coupon code system into checkout flow
+- Prize tiers: 5% (30%), Free Shipping (25%), Try Again (15%), 10% (12%), GH₵10 (8%), 15% (5%), GH₵25 (3%), 20% (2%)
+
+Stage Summary:
+- Wheel of Fortune fully functional with balanced prize distribution
+- Coupons auto-populate in checkout from wheel wins
+- Confetti animation on real wins
+- Daily spin limit prevents abuse
