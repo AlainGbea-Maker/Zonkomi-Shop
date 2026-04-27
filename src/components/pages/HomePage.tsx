@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAppStore, type Product, type Category } from '@/lib/store'
 import ProductCard from '@/components/ui/ProductCard'
-import { ArrowRight, Shield, RotateCcw, Award, CreditCard, Package, Users, Star, TrendingUp } from 'lucide-react'
+import { ArrowRight, Shield, RotateCcw, Award, CreditCard, Package, Users, Star, TrendingUp, Gift, Zap } from 'lucide-react'
 
 function parseImages(images: string | null | undefined): string[] {
   if (!images) return []
@@ -432,6 +432,85 @@ export default function HomePage() {
               ))}
             </motion.div>
           )}
+        </div>
+      </section>
+
+      {/* Spin & Win Promo */}
+      <section className="bg-gradient-to-br from-[#002B1B] via-[#003D26] to-[#002B1B] py-12 md:py-16 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[#FCD116] rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#CE1126] rounded-full blur-[100px]" />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center"
+          >
+            {/* Left - Copy */}
+            <div className="text-center lg:text-left">
+              <motion.div
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ type: 'spring', damping: 15 }}
+                className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FCD116]/15 border border-[#FCD116]/30 rounded-full mb-4"
+              >
+                <Gift className="w-4 h-4 text-[#FCD116]" />
+                <span className="text-sm font-medium text-[#FCD116]">Exclusive Rewards</span>
+              </motion.div>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 leading-tight">
+                Spin & Win <span className="text-[#FCD116]">Exclusive Discounts</span>
+              </h2>
+              <p className="text-gray-300 mb-6 max-w-md mx-auto lg:mx-0">
+                Fill your cart with GH₵799+ worth of premium refurbished tech and unlock our
+                daily Spin & Win wheel. Win up to <span className="text-[#FCD116] font-semibold">20% off</span>,
+                free shipping, or fixed-amount discounts on your order!
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Button
+                  size="lg"
+                  className="bg-[#FCD116] hover:bg-[#D4AA00] text-white rounded-full px-8 h-12 text-base font-bold shadow-lg shadow-yellow-500/20"
+                  onClick={() => navigate('products')}
+                >
+                  <Zap className="w-5 h-5 mr-2" />
+                  Start Building Your Cart
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-[#FCD116]/40 text-[#FCD116] hover:bg-[#FCD116]/10 rounded-full px-8 h-12 text-base"
+                  onClick={() => navigate('products')}
+                >
+                  Browse Deals
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            {/* Right - Prize Cards */}
+            <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto lg:mx-0 lg:ml-auto">
+              {[
+                { prize: '20% Off', color: 'from-red-500 to-orange-500', emoji: '🔥', desc: 'Maximum savings' },
+                { prize: 'Free Shipping', color: 'from-emerald-500 to-teal-500', emoji: '🚚', desc: 'Delivered free' },
+                { prize: '15% Off', color: 'from-purple-500 to-violet-500', emoji: '💎', desc: 'Premium discount' },
+                { prize: 'GH₵25 Off', color: 'from-pink-500 to-rose-500', emoji: '💰', desc: 'Cash savings' },
+              ].map((item, i) => (
+                <motion.div
+                  key={item.prize}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className={`bg-gradient-to-br ${item.color} rounded-xl p-4 text-white shadow-lg`}
+                >
+                  <span className="text-2xl">{item.emoji}</span>
+                  <p className="font-bold text-base mt-1">{item.prize}</p>
+                  <p className="text-white/80 text-xs">{item.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </section>
 

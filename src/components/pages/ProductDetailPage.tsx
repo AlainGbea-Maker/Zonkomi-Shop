@@ -27,6 +27,7 @@ import {
   Truck,
   RotateCcw,
   Package,
+  Gift,
 } from 'lucide-react'
 
 function parseImages(images: string | null | undefined): string[] {
@@ -336,6 +337,19 @@ export default function ProductDetailPage() {
                 <Zap className="w-5 h-5 mr-2" />
                 Buy Now
               </Button>
+            </div>
+
+            {/* Spin & Win CTA */}
+            <div className="p-3 bg-gradient-to-r from-[#002B1B] to-[#004D2E] rounded-xl border border-[#FCD116]/20">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-[#FCD116]/20 flex items-center justify-center flex-shrink-0">
+                  <Gift className="w-5 h-5 text-[#FCD116]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-white">Spin & Win up to 20% Off!</p>
+                  <p className="text-xs text-gray-400">Add GH₵799+ to your cart to unlock</p>
+                </div>
+              </div>
             </div>
 
             {/* Shipping */}
