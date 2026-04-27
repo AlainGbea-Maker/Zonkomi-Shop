@@ -10,6 +10,7 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
+  password  String?
   name      String
   phone     String?
   address   String?
@@ -17,12 +18,17 @@ model User {
   state     String?
   zipCode   String?
   country   String   @default("US")
+  role      String   @default("customer")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  cartItems  CartItem[]
-  orders     Order[]
-  reviews    Review[]
+  cartItems    CartItem[]
+  orders       Order[]
+  reviews      Review[]
+  wishlist     Wishlist[]
+
+  @@index([email])
+  @@index([role])
 }
 
 model Category {
@@ -32,10 +38,14 @@ model Category {
   description String?
   image       String?
   sortOrder   Int       @default(0)
+  active      Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   products Product[]
+
+  @@index([sortOrder])
+  @@index([active])
 }
 
 model Product {
@@ -53,6 +63,7 @@ model Product {
   rating        Float     @default(4.0)
   reviewCount   Int       @default(0)
   featured      Boolean   @default(false)
+  active        Boolean   @default(true)
   specs         String    @default("{}")
   brand         String?
   warranty      String    @default("90 Days Warranty")
@@ -63,6 +74,13 @@ model Product {
   cartItems   CartItem[]
   orderItems  OrderItem[]
   reviews     Review[]
+  wishlist    Wishlist[]
+
+  @@index([categoryId])
+  @@index([featured])
+  @@index([active])
+  @@index([price])
+  @@index([createdAt])
 }
 
 model CartItem {
@@ -75,6 +93,10 @@ model CartItem {
 
   user    User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product  @relation(fields: [productId], references: [id])
+
+  @@index([userId])
+  @@index([productId])
+  @@unique([userId, productId])
 }
 
 model Order {
@@ -100,6 +122,10 @@ model Order {
 
   user       User        @relation(fields: [userId], references: [id])
   orderItems OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model OrderItem {
@@ -113,6 +139,8 @@ model OrderItem {
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
 }
 
 model Review {
@@ -122,8 +150,27 @@ model Review {
   rating    Int
   title     String?
   comment   String?
+  helpful   Int      @default(0)
+  active    Boolean  @default(true)
   createdAt DateTime @default(now())
 
   product Product @relation(fields: [productId], references: [id])
   user    User    @relation(fields: [userId], references: [id])
+
+  @@index([productId])
+  @@index([userId])
+  @@unique([userId, productId])
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
+  @@index([userId])
 }

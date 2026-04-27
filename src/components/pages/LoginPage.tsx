@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { useAppStore, useUserStore } from '@/lib/store'
+import { Shield } from 'lucide-react'
 import { ArrowLeft, Mail, User, Loader2, Zap } from 'lucide-react'
 
 export default function LoginPage() {
@@ -37,8 +38,10 @@ export default function LoginPage() {
       })
       if (!res.ok) throw new Error()
       const data = await res.json()
-      setUser(data.user || data)
-      navigate('home')
+      const userData = data.user || data
+      setUser(userData, data.token)
+      if (userData?.role === 'admin') navigate('admin')
+      else navigate('home')
     } catch {
       setError('Login failed. Please try again.')
     } finally {
@@ -62,8 +65,10 @@ export default function LoginPage() {
       })
       if (!res.ok) throw new Error()
       const data = await res.json()
-      setUser(data.user || data)
-      navigate('home')
+      const userData = data.user || data
+      setUser(userData, data.token)
+      if (userData?.role === 'admin') navigate('admin')
+      else navigate('home')
     } catch {
       setError('Registration failed. Please try again.')
     } finally {
@@ -78,8 +83,10 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/demo')
       if (!res.ok) throw new Error()
       const data = await res.json()
-      setUser(data.user || data)
-      navigate('home')
+      const userData = data.user || data
+      setUser(userData, data.token)
+      if (userData?.role === 'admin') navigate('admin')
+      else navigate('home')
     } catch {
       setError('Demo login failed. Please try again.')
     } finally {

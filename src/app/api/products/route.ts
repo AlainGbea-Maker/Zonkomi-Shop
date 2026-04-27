@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '12', 10) || 12))
     const skip = (page - 1) * limit
 
-    const where: Record<string, unknown> = {}
+    const where: Record<string, unknown> = { active: true }
 
     // Filter by category slug or ID
     if (categorySlug) {

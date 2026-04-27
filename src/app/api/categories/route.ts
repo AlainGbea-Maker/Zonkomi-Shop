@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 export async function GET() {
   try {
     const categories = await db.category.findMany({
+      where: { active: true },
       orderBy: { sortOrder: 'asc' },
       include: {
         _count: {

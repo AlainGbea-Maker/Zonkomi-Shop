@@ -15,6 +15,7 @@ import OrderHistoryPage from '@/components/pages/OrderHistoryPage'
 import OrderDetailPage from '@/components/pages/OrderDetailPage'
 import AccountPage from '@/components/pages/AccountPage'
 import LoginPage from '@/components/pages/LoginPage'
+import AdminDashboard from '@/components/pages/AdminDashboard'
 
 const pageComponents: Record<string, React.ComponentType> = {
   home: HomePage,
@@ -27,6 +28,7 @@ const pageComponents: Record<string, React.ComponentType> = {
   'order-detail': OrderDetailPage,
   login: LoginPage,
   account: AccountPage,
+  admin: AdminDashboard,
 }
 
 export default function Home() {

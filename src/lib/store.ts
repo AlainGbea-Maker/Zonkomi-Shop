@@ -97,6 +97,7 @@ export type AppView =
   | 'order-detail'
   | 'login'
   | 'account'
+  | 'admin'
 
 // ==================== CART STORE ====================
 interface CartStore {
@@ -200,18 +201,58 @@ export const useAppStore = create<AppStore>()((set) => ({
 
 // ==================== USER STORE ====================
 interface UserStore {
-  user: { id: string; email: string; name: string; phone?: string; address?: string; city?: string; state?: string; zipCode?: string } | null
-  setUser: (user: any) => void
+  user: { id: string; email: string; name: string; phone?: string; address?: string; city?: string; state?: string; zipCode?: string; role?: string } | null
+  token: string | null
+  setUser: (user: any, token?: string) => void
   logout: () => void
+  isAdmin: () => boolean
 }
 
 export const useUserStore = create<UserStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
-      setUser: (user) => set({ user }),
-      logout: () => set({ user: null }),
+      token: null,
+      setUser: (user, token) => set({ user, token: token || null }),
+      logout: () => set({ user: null, token: null }),
+      isAdmin: () => get().user?.role === 'admin',
     }),
     { name: 'zonkomi-user' }
+  )
+)
+
+// ==================== WISHLIST STORE ====================
+interface WishlistStore {
+  items: string[]  // product IDs
+  addItem: (productId: string) => void
+  removeItem: (productId: string) => void
+  toggleItem: (productId: string) => void
+  hasItem: (productId: string) => boolean
+  clearAll: () => void
+}
+
+export const useWishlistStore = create<WishlistStore>()(
+  persist(
+    (set, get) => ({
+      items: [],
+      addItem: (productId) => {
+        if (!get().items.includes(productId)) {
+          set((state) => ({ items: [...state.items, productId] }))
+        }
+      },
+      removeItem: (productId) => {
+        set((state) => ({ items: state.items.filter((id) => id !== productId) }))
+      },
+      toggleItem: (productId) => {
+        if (get().items.includes(productId)) {
+          get().removeItem(productId)
+        } else {
+          get().addItem(productId)
+        }
+      },
+      hasItem: (productId) => get().items.includes(productId),
+      clearAll: () => set({ items: [] }),
+    }),
+    { name: 'zonkomi-wishlist' }
   )
 )

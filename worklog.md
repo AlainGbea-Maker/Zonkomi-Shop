@@ -45,3 +45,60 @@ Stage Summary:
 - Archive available at: download/zonkomi-shop.tar.gz
 - All necessary files for setup are included: .env.example, prisma/schema.prisma, prisma/seed.ts
 - README provides complete documentation for cloning, installing, and running the project
+
+---
+Task ID: 3
+Agent: main
+Task: Design and build comprehensive backend for Zonkomi Shop
+
+Work Log:
+- Installed jsonwebtoken and bcryptjs packages for authentication
+- Updated Prisma schema with new fields and models:
+  - User: added password, role (admin/customer) fields
+  - Category: added active field
+  - Product: added active field
+  - CartItem: added unique constraint on (userId, productId)
+  - Review: added helpful count, active field, unique constraint on (userId, productId)
+  - NEW Wishlist model with userId/productId
+  - Added database indexes for performance
+- Created src/lib/auth.ts: JWT sign/verify, password hash/compare utilities
+- Created src/lib/middleware.ts: withAuth (requires login), withAdmin (requires admin role), optionalAuth helpers
+- Enhanced auth APIs:
+  - /api/auth/register: now requires password, returns JWT token
+  - /api/auth/login: supports password validation, returns JWT token
+  - /api/auth/demo: auto-creates demo user, returns JWT token
+  - NEW /api/auth/me: GET (profile), PUT (update profile) with JWT auth
+- Created Admin API routes:
+  - /api/admin/dashboard: stats, recent orders, top products, order status breakdown, revenue by month
+  - /api/admin/products: GET (list with search/filter), POST (create), PUT (update), DELETE
+  - /api/admin/products/bulk: POST (bulk activate/deactivate/feature/delete/updateStock)
+  - /api/admin/categories: GET (list), POST (create), PUT (update), DELETE (with product count check)
+  - /api/admin/orders: GET (list with search/filter/status/date range)
+  - /api/admin/orders/[orderNumber]: GET (detail), PATCH (status update with stock restore on cancel), DELETE
+- Created Reviews API:
+  - /api/reviews: GET (list by product/user with avg rating), POST (create with auto product rating update), DELETE (own only)
+- Created Wishlist API:
+  - /api/wishlist: GET (list), POST (add), DELETE (remove), HEAD (check if in wishlist)
+- Updated frontend stores:
+  - UserStore: now stores JWT token, supports role-based access (isAdmin())
+  - NEW WishlistStore: client-side wishlist state management
+  - Added 'admin' view to AppView type
+- Created Admin Dashboard page (AdminDashboard.tsx):
+  - Stats cards (products, orders, customers, revenue)
+  - Recent orders tab
+  - All orders tab with status filter and inline status update dropdown
+  - Order status overview with visual progress bars
+  - Admin access denied screen for non-admin users
+- Updated LoginPage to store JWT tokens and redirect admins to dashboard
+- Updated public APIs to filter by active=true (products, categories)
+- Re-seeded database with admin user (admin@zonkomishop.com / admin123) and demo user
+- All ESLint checks pass
+
+Stage Summary:
+- Full JWT authentication system with role-based access control
+- Complete admin backend API: products CRUD, categories CRUD, orders management
+- Dashboard analytics API with revenue, stats, and order breakdowns
+- Reviews and Wishlist APIs fully functional
+- Admin Dashboard frontend with order management and analytics
+- Admin credentials: admin@zonkomishop.com / admin123
+- Demo credentials: demo@zonkomishop.com / demo123
