@@ -184,8 +184,8 @@ export const useAppStore = create<AppStore>()((set) => ({
   selectedCategoryId: null,
   selectedOrderNumber: null,
   searchQuery: '',
-  sortBy: 'featured',
-  priceRange: [0, 2000],
+  sortBy: 'newest',
+  priceRange: [0, 5000],
   navigate: (view, params) =>
     set({
       view,
@@ -196,7 +196,7 @@ export const useAppStore = create<AppStore>()((set) => ({
   setSearchQuery: (searchQuery) => set({ searchQuery }),
   setSortBy: (sortBy) => set({ sortBy }),
   setPriceRange: (priceRange) => set({ priceRange }),
-  resetFilters: () => set({ searchQuery: '', sortBy: 'featured', priceRange: [0, 2000] }),
+  resetFilters: () => set({ searchQuery: '', sortBy: 'newest', priceRange: [0, 5000] }),
 }))
 
 // ==================== USER STORE ====================

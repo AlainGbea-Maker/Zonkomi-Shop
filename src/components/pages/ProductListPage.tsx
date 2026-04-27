@@ -34,7 +34,7 @@ import {
   PackageSearch,
 } from 'lucide-react'
 
-const ITEMS_PER_PAGE = 12
+const ITEMS_PER_PAGE = 24
 
 const conditions = ['Excellent', 'Good', 'Fair', 'Like New']
 
@@ -69,7 +69,7 @@ export default function ProductListPage() {
       if (searchQuery) params.set('search', searchQuery)
       if (selectedCategory && selectedCategory !== 'all') params.set('categoryId', selectedCategory)
       if (priceRange[0] > 0) params.set('minPrice', String(priceRange[0]))
-      if (priceRange[1] < 2000) params.set('maxPrice', String(priceRange[1]))
+      if (priceRange[1] < 5000) params.set('maxPrice', String(priceRange[1]))
       if (selectedConditions.length > 0) params.set('condition', selectedConditions.join(','))
 
       const res = await fetch(`/api/products?${params.toString()}`)
@@ -117,11 +117,11 @@ export default function ProductListPage() {
   const clearFilters = () => {
     setSelectedCategory('all')
     setSelectedConditions([])
-    setPriceRange([0, 2000])
+    setPriceRange([0, 5000])
     resetFilters()
   }
 
-  const hasActiveFilters = selectedCategory !== 'all' || selectedConditions.length > 0 || priceRange[0] > 0 || priceRange[1] < 2000
+  const hasActiveFilters = selectedCategory !== 'all' || selectedConditions.length > 0 || priceRange[0] > 0 || priceRange[1] < 5000
 
   const FilterContent = () => (
     <div className="space-y-6">
@@ -157,15 +157,15 @@ export default function ProductListPage() {
         <h3 className="text-sm font-semibold text-gray-900 mb-3">Price Range</h3>
         <Slider
           min={0}
-          max={2000}
+          max={5000}
           step={10}
           value={priceRange}
           onValueChange={(val) => setPriceRange(val as [number, number])}
           className="mb-3"
         />
         <div className="flex items-center justify-between text-sm text-gray-600">
-          <span>${priceRange[0]}</span>
-          <span>${priceRange[1]}</span>
+          <span>GH₵{priceRange[0]}</span>
+          <span>GH₵{priceRange[1]}</span>
         </div>
       </div>
 
@@ -310,13 +310,13 @@ export default function ProductListPage() {
               <X className="w-3 h-3 ml-1" />
             </Badge>
           ))}
-          {(priceRange[0] > 0 || priceRange[1] < 2000) && (
+          {(priceRange[0] > 0 || priceRange[1] < 5000) && (
             <Badge
               variant="secondary"
               className="cursor-pointer hover:bg-red-100 hover:text-red-700 transition-colors"
-              onClick={() => setPriceRange([0, 2000])}
+              onClick={() => setPriceRange([0, 5000])}
             >
-              ${priceRange[0]} - ${priceRange[1]}
+              GH₵{priceRange[0]} - GH₵{priceRange[1]}
               <X className="w-3 h-3 ml-1" />
             </Badge>
           )}

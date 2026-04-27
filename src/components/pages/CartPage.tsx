@@ -1,22 +1,55 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { useCartStore, useAppStore } from '@/lib/store'
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Shield, Truck } from 'lucide-react'
+import { useCartStore, useAppStore, type Product } from '@/lib/store'
+import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Shield, Truck, AlertTriangle, RefreshCw } from 'lucide-react'
 
-function getProductEmoji(images: string | null | undefined, fallback = '📦'): string {
-  if (!images) return fallback
+function parseImages(images: string | null | undefined): string[] {
+  if (!images) return []
   try {
     const parsed = typeof images === 'string' ? JSON.parse(images) : images
-    if (Array.isArray(parsed) && parsed.length > 0) return parsed[0]
-    if (typeof parsed === 'string') return parsed
-    return fallback
+    if (Array.isArray(parsed)) return parsed
+    if (typeof parsed === 'string') return [parsed]
+    return []
   } catch {
-    return images || fallback
+    return []
   }
+}
+
+function isImageUrl(str: string): boolean {
+  return str.startsWith('/uploads/') || str.startsWith('http://') || str.startsWith('https://')
+}
+
+function getProductEmoji(images: string | null | undefined, fallback = '📦'): string {
+  const parsed = parseImages(images)
+  for (const img of parsed) {
+    if (!isImageUrl(img)) return img
+  }
+  return fallback
+}
+
+function getProductImage(images: string | null | undefined): string | null {
+  const parsed = parseImages(images)
+  return parsed.find(isImageUrl) || null
+}
+
+function ProductThumbnail({ images, name }: { images: string | null | undefined; name: string }) {
+  const imgUrl = getProductImage(images)
+  const emoji = getProductEmoji(images)
+
+  return (
+    <div className="flex-shrink-0 w-24 h-24 md:w-32 md:h-32 rounded-lg bg-gradient-to-br from-[#FCD116] to-[#D4AA00] flex items-center justify-center overflow-hidden">
+      {imgUrl ? (
+        <img src={imgUrl} alt={name} className="w-full h-full object-cover" />
+      ) : (
+        <span className="text-4xl md:text-5xl">{emoji}</span>
+      )}
+    </div>
+  )
 }
 
 export default function CartPage() {
@@ -32,6 +65,63 @@ export default function CartPage() {
     getItemCount,
   } = useCartStore()
   const { navigate } = useAppStore()
+  const [syncing, setSyncing] = useState(false)
+  const [removedIds, setRemovedIds] = useState<string[]>([])
+
+  // Sync cart items with latest product data from the database
+  useEffect(() => {
+    if (items.length === 0) return
+
+    const syncCart = async () => {
+      setSyncing(true)
+      try {
+        const productIds = items.map(i => i.productId).join(',')
+        const res = await fetch(`/api/products?limit=50`)
+        const data = await res.json()
+        const freshProducts: Product[] = data?.products || data || []
+        const productMap = new Map(freshProducts.map((p: Product) => [p.id, p]))
+
+        // Update cart items with fresh product data and remove inactive/out-of-stock items
+        let hasChanges = false
+        const toRemove: string[] = []
+
+        items.forEach(item => {
+          const fresh = productMap.get(item.productId)
+          if (!fresh || !fresh.active) {
+            toRemove.push(item.productId)
+            hasChanges = true
+          } else if (
+            item.product &&
+            (item.product.price !== fresh.price ||
+             item.product.name !== fresh.name ||
+             item.product.images !== fresh.images ||
+             item.product.stock !== fresh.stock)
+          ) {
+            // Update the product data in the cart item
+            useCartStore.setState(state => ({
+              items: state.items.map(i =>
+                i.productId === item.productId
+                  ? { ...i, product: fresh, quantity: Math.min(i.quantity, fresh.stock) }
+                  : i
+              ),
+            }))
+            hasChanges = true
+          }
+        })
+
+        if (toRemove.length > 0) {
+          toRemove.forEach(id => useCartStore.getState().removeItem(id))
+          setRemovedIds(toRemove)
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setSyncing(false)
+      }
+    }
+
+    syncCart()
+  }, []) // Only run once on mount
 
   const subtotal = getSubtotal()
   const tax = getTax()
@@ -70,20 +160,45 @@ export default function CartPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
+      {/* Sync notification */}
+      {removedIds.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-3"
+        >
+          <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+          <p className="text-sm text-amber-800">
+            {removedIds.length} {removedIds.length === 1 ? 'item' : 'items'} {removedIds.length === 1 ? 'was' : 'were'} removed from your cart because {removedIds.length === 1 ? 'it is' : 'they are'} no longer available.
+          </p>
+          <button onClick={() => setRemovedIds([])} className="text-amber-600 hover:text-amber-800 ml-auto flex-shrink-0">
+            ×
+          </button>
+        </motion.div>
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Shopping Cart</h1>
           <p className="text-sm text-gray-500 mt-1">{itemCount} {itemCount === 1 ? 'item' : 'items'}</p>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-red-500 hover:text-red-600 hover:bg-red-50"
-          onClick={clearCart}
-        >
-          <Trash2 className="w-4 h-4 mr-1" />
-          Clear Cart
-        </Button>
+        <div className="flex items-center gap-2">
+          {syncing && (
+            <span className="text-xs text-gray-400 flex items-center gap-1">
+              <RefreshCw className="w-3 h-3 animate-spin" />
+              Syncing...
+            </span>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+            onClick={clearCart}
+          >
+            <Trash2 className="w-4 h-4 mr-1" />
+            Clear Cart
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -114,9 +229,9 @@ export default function CartPage() {
                         {/* Product Image */}
                         <button
                           onClick={() => navigate('product-detail', { productId: item.product!.id })}
-                          className="flex-shrink-0 w-24 h-24 md:w-32 md:h-32 rounded-lg bg-gradient-to-br from-[#FCD116] to-[#D4AA00] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+                          className="cursor-pointer hover:opacity-90 transition-opacity"
                         >
-                          <span className="text-4xl md:text-5xl">{getProductEmoji(item.product.images)}</span>
+                          <ProductThumbnail images={item.product.images} name={item.product.name} />
                         </button>
 
                         {/* Product Info */}
