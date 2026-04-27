@@ -19,18 +19,51 @@ import {
   ShoppingBag,
   Loader2,
   Package,
+  Smartphone,
+  Truck,
+  ShieldCheck,
+  Phone,
 } from 'lucide-react'
 
-function getProductEmoji(images: string | null | undefined, fallback = '📦'): string {
-  if (!images) return fallback
+function parseImages(images: string | null | undefined): string[] {
+  if (!images) return []
   try {
     const parsed = typeof images === 'string' ? JSON.parse(images) : images
-    if (Array.isArray(parsed) && parsed.length > 0) return parsed[0]
-    if (typeof parsed === 'string') return parsed
-    return fallback
+    if (Array.isArray(parsed)) return parsed
+    if (typeof parsed === 'string') return [parsed]
+    return []
   } catch {
-    return images || fallback
+    return [images]
   }
+}
+
+function isImageUrl(str: string): boolean {
+  return str.startsWith('/uploads/') || str.startsWith('http')
+}
+
+function getEmojiFallback(images: string | null | undefined, fallback = '📦'): string {
+  const parsed = parseImages(images)
+  for (const img of parsed) {
+    if (!isImageUrl(img)) return img
+  }
+  return fallback
+}
+
+function ProductThumb({ images, name }: { images: string | null | undefined; name: string }) {
+  const imgs = parseImages(images)
+  const realImg = imgs.find(isImageUrl)
+  if (realImg) {
+    return (
+      <div className="w-12 h-12 rounded bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <img src={realImg} alt={name} className="w-full h-full object-cover" />
+      </div>
+    )
+  }
+  return (
+    <div className="w-12 h-12 rounded bg-gradient-to-br from-[#FCD116] to-[#D4AA00] flex items-center justify-center flex-shrink-0">
+      <span className="text-xl">{getEmojiFallback(images)}</span>
+    </div>
+  )
 }
 
 const steps = [
@@ -39,21 +72,86 @@ const steps = [
   { id: 3, label: 'Review', icon: ClipboardList },
 ]
 
+const GHANA_REGIONS = [
+  'Greater Accra',
+  'Ashanti',
+  'Western',
+  'Eastern',
+  'Central',
+  'Northern',
+  'Volta',
+  'Upper East',
+  'Upper West',
+  'Bono',
+  'Bono East',
+  'Ahafo',
+  'Savannah',
+  'North East',
+  'Oti',
+  'Western North',
+]
+
+type PaymentMethod = 'mtn_momo' | 'vodafone_cash' | 'airteltigo_money' | 'card' | 'cash_on_delivery'
+
+interface PaymentOption {
+  id: PaymentMethod
+  label: string
+  subtitle: string
+  icon: string
+  color: string
+  bgColor: string
+}
+
+const paymentOptions: PaymentOption[] = [
+  {
+    id: 'mtn_momo',
+    label: 'MTN Mobile Money',
+    subtitle: 'Pay with MTN MoMo',
+    icon: '📱',
+    color: 'text-yellow-600',
+    bgColor: 'border-yellow-400 bg-yellow-50',
+  },
+  {
+    id: 'vodafone_cash',
+    label: 'Vodafone Cash',
+    subtitle: 'Pay with VF Cash',
+    icon: '📲',
+    color: 'text-red-600',
+    bgColor: 'border-red-400 bg-red-50',
+  },
+  {
+    id: 'airteltigo_money',
+    label: 'AirtelTigo Money',
+    subtitle: 'Pay with AT Money',
+    icon: '☎️',
+    color: 'text-blue-600',
+    bgColor: 'border-blue-400 bg-blue-50',
+  },
+  {
+    id: 'card',
+    label: 'Visa / Mastercard',
+    subtitle: 'Debit or Credit Card',
+    icon: '💳',
+    color: 'text-purple-600',
+    bgColor: 'border-purple-400 bg-purple-50',
+  },
+  {
+    id: 'cash_on_delivery',
+    label: 'Cash on Delivery',
+    subtitle: 'Pay when you receive',
+    icon: '💵',
+    color: 'text-green-600',
+    bgColor: 'border-green-400 bg-green-50',
+  },
+]
+
 interface ShippingInfo {
   name: string
   address: string
   city: string
-  state: string
-  zip: string
+  region: string
   phone: string
-  country: string
-}
-
-interface PaymentInfo {
-  cardNumber: string
-  expiry: string
-  cvv: string
-  cardName: string
+  additionalInfo: string
 }
 
 export default function CheckoutPage() {
@@ -68,13 +166,14 @@ export default function CheckoutPage() {
     name: user?.name || '',
     address: user?.address || '',
     city: user?.city || '',
-    state: user?.state || '',
-    zip: user?.zipCode || '',
+    region: user?.state || '',
     phone: user?.phone || '',
-    country: 'US',
+    additionalInfo: '',
   })
 
-  const [payment, setPayment] = useState<PaymentInfo>({
+  const [selectedPayment, setSelectedPayment] = useState<PaymentMethod>('mtn_momo')
+  const [momoPhone, setMomoPhone] = useState(user?.phone || '')
+  const [cardInfo, setCardInfo] = useState({
     cardNumber: '',
     expiry: '',
     cvv: '',
@@ -105,8 +204,24 @@ export default function CheckoutPage() {
   }
 
   const validateShipping = () => {
-    if (!shipping.name || !shipping.address || !shipping.city || !shipping.state || !shipping.zip) {
-      setError('Please fill in all required shipping fields')
+    if (!shipping.name.trim()) {
+      setError('Please enter your full name')
+      return false
+    }
+    if (!shipping.address.trim()) {
+      setError('Please enter your delivery address')
+      return false
+    }
+    if (!shipping.city.trim()) {
+      setError('Please enter your city')
+      return false
+    }
+    if (!shipping.region.trim()) {
+      setError('Please select your region')
+      return false
+    }
+    if (!shipping.phone.trim() || shipping.phone.replace(/\D/g, '').length < 10) {
+      setError('Please enter a valid Ghana phone number (e.g. 024 XXX XXXX)')
       return false
     }
     setError('')
@@ -114,13 +229,21 @@ export default function CheckoutPage() {
   }
 
   const validatePayment = () => {
-    if (!payment.cardNumber || !payment.expiry || !payment.cvv || !payment.cardName) {
-      setError('Please fill in all payment fields')
-      return false
+    if (selectedPayment === 'mtn_momo' || selectedPayment === 'vodafone_cash' || selectedPayment === 'airteltigo_money') {
+      if (!momoPhone.trim() || momoPhone.replace(/\D/g, '').length < 10) {
+        setError('Please enter a valid mobile money number')
+        return false
+      }
     }
-    if (payment.cardNumber.replace(/\s/g, '').length < 16) {
-      setError('Please enter a valid card number')
-      return false
+    if (selectedPayment === 'card') {
+      if (!cardInfo.cardNumber || !cardInfo.expiry || !cardInfo.cvv || !cardInfo.cardName) {
+        setError('Please fill in all card details')
+        return false
+      }
+      if (cardInfo.cardNumber.replace(/\s/g, '').length < 16) {
+        setError('Please enter a valid card number')
+        return false
+      }
     }
     setError('')
     return true
@@ -135,6 +258,29 @@ export default function CheckoutPage() {
   const handleBack = () => {
     setError('')
     setCurrentStep((s) => Math.max(1, s - 1))
+  }
+
+  const getPaymentLabel = () => {
+    const opt = paymentOptions.find((p) => p.id === selectedPayment)
+    if (!opt) return 'Card'
+    if (selectedPayment === 'mtn_momo' || selectedPayment === 'vodafone_cash' || selectedPayment === 'airteltigo_money') {
+      return `${opt.label} (${momoPhone.replace(/\D/g, '').slice(-9)})`
+    }
+    if (selectedPayment === 'card') {
+      return `Card ending in ${cardInfo.cardNumber.replace(/\s/g, '').slice(-4) || '****'}`
+    }
+    return opt.label
+  }
+
+  const getPaymentMethodForOrder = () => {
+    const opt = paymentOptions.find((p) => p.id === selectedPayment)
+    if (selectedPayment === 'mtn_momo' || selectedPayment === 'vodafone_cash' || selectedPayment === 'airteltigo_money') {
+      return `${opt?.label} - ${momoPhone.replace(/\D/g, '').slice(-9)}`
+    }
+    if (selectedPayment === 'card') {
+      return `Card - ${cardInfo.cardNumber.replace(/\s/g, '').slice(-4)}`
+    }
+    return opt?.label || 'Cash on Delivery'
   }
 
   const handleSubmit = async () => {
@@ -156,11 +302,11 @@ export default function CheckoutPage() {
           cartItems: orderItems,
           shippingAddress: shipping.address,
           shippingCity: shipping.city,
-          shippingState: shipping.state,
-          shippingZip: shipping.zip,
-          shippingCountry: shipping.country,
+          shippingState: shipping.region,
+          shippingZip: shipping.region,
+          shippingCountry: 'GH',
           shippingPhone: shipping.phone,
-          paymentMethod: `Card ending in ${payment.cardNumber.slice(-4)}`,
+          paymentMethod: getPaymentMethodForOrder(),
         }),
       })
 
@@ -186,6 +332,11 @@ export default function CheckoutPage() {
     if (cleaned.length >= 2) {
       return cleaned.slice(0, 2) + '/' + cleaned.slice(2)
     }
+    return cleaned
+  }
+
+  const formatGhanaPhone = (value: string) => {
+    const cleaned = value.replace(/\D/g, '').slice(0, 10)
     return cleaned
   }
 
@@ -250,13 +401,24 @@ export default function CheckoutPage() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
+              {/* ====== STEP 1: SHIPPING ====== */}
               {currentStep === 1 && (
                 <Card>
                   <CardContent className="p-6">
                     <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                       <MapPin className="w-5 h-5 text-[#C59F00]" />
-                      Shipping Information
+                      Delivery Information
                     </h2>
+
+                    {/* Ghana flag badge */}
+                    <div className="flex items-center gap-2 mb-5 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <span className="text-2xl">🇬🇭</span>
+                      <div>
+                        <p className="text-sm font-semibold text-green-800">Delivering within Ghana</p>
+                        <p className="text-xs text-green-600">Free delivery on orders over GH₵ 500</p>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="md:col-span-2">
                         <Label htmlFor="name">Full Name *</Label>
@@ -264,66 +426,76 @@ export default function CheckoutPage() {
                           id="name"
                           value={shipping.name}
                           onChange={(e) => setShipping({ ...shipping, name: e.target.value })}
-                          placeholder="John Doe"
+                          placeholder="e.g. Kwame Asante"
                           className="mt-1"
                         />
                       </div>
                       <div className="md:col-span-2">
-                        <Label htmlFor="address">Street Address *</Label>
+                        <Label htmlFor="phone">Phone Number * <span className="text-xs text-gray-400 font-normal">(required for delivery & mobile money)</span></Label>
+                        <div className="relative mt-1">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">+233</span>
+                          <Input
+                            id="phone"
+                            value={shipping.phone}
+                            onChange={(e) => setShipping({ ...shipping, phone: formatGhanaPhone(e.target.value) })}
+                            placeholder="24 XXX XXXX"
+                            className="pl-14"
+                            maxLength={10}
+                          />
+                        </div>
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label htmlFor="address">Delivery Address *</Label>
                         <Input
                           id="address"
                           value={shipping.address}
                           onChange={(e) => setShipping({ ...shipping, address: e.target.value })}
-                          placeholder="123 Main St, Apt 4B"
+                          placeholder="e.g. House 12, Ring Road Central, East Legon"
                           className="mt-1"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="city">City *</Label>
+                        <Label htmlFor="city">City / Town *</Label>
                         <Input
                           id="city"
                           value={shipping.city}
                           onChange={(e) => setShipping({ ...shipping, city: e.target.value })}
-                          placeholder="New York"
+                          placeholder="e.g. Accra, Kumasi"
                           className="mt-1"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="state">State *</Label>
-                        <Input
-                          id="state"
-                          value={shipping.state}
-                          onChange={(e) => setShipping({ ...shipping, state: e.target.value })}
-                          placeholder="NY"
-                          className="mt-1"
-                        />
+                        <Label htmlFor="region">Region *</Label>
+                        <select
+                          id="region"
+                          value={shipping.region}
+                          onChange={(e) => setShipping({ ...shipping, region: e.target.value })}
+                          className="mt-1 w-full h-9 rounded-md border border-gray-200 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#FCD116] focus:border-transparent"
+                        >
+                          <option value="">Select Region</option>
+                          {GHANA_REGIONS.map((r) => (
+                            <option key={r} value={r}>{r}</option>
+                          ))}
+                        </select>
                       </div>
-                      <div>
-                        <Label htmlFor="zip">ZIP Code *</Label>
+                      <div className="md:col-span-2">
+                        <Label htmlFor="additionalInfo">Additional Delivery Notes</Label>
                         <Input
-                          id="zip"
-                          value={shipping.zip}
-                          onChange={(e) => setShipping({ ...shipping, zip: e.target.value })}
-                          placeholder="10001"
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="phone">Phone</Label>
-                        <Input
-                          id="phone"
-                          value={shipping.phone}
-                          onChange={(e) => setShipping({ ...shipping, phone: e.target.value })}
-                          placeholder="(555) 123-4567"
+                          id="additionalInfo"
+                          value={shipping.additionalInfo}
+                          onChange={(e) => setShipping({ ...shipping, additionalInfo: e.target.value })}
+                          placeholder="e.g. Near the filling station, 2nd gate on the left"
                           className="mt-1"
                         />
                       </div>
                     </div>
+
                     {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
                   </CardContent>
                 </Card>
               )}
 
+              {/* ====== STEP 2: PAYMENT ====== */}
               {currentStep === 2 && (
                 <Card>
                   <CardContent className="p-6">
@@ -331,93 +503,214 @@ export default function CheckoutPage() {
                       <CreditCard className="w-5 h-5 text-[#C59F00]" />
                       Payment Method
                     </h2>
-                    <div className="space-y-4">
-                      {/* Visual Card */}
-                      <div className="w-full h-44 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 text-white relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-8 translate-x-8" />
-                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-8 -translate-x-8" />
-                        <div className="relative">
-                          <div className="flex justify-between items-start mb-8">
-                            <CreditCard className="w-8 h-8 text-gray-300" />
-                            <span className="text-sm text-gray-400">CREDIT CARD</span>
-                          </div>
-                          <p className="text-lg tracking-widest font-mono mb-6">
-                            {payment.cardNumber || '•••• •••• •••• ••••'}
-                          </p>
-                          <div className="flex justify-between items-end">
-                            <div>
-                              <p className="text-[10px] text-gray-400 uppercase">Card Holder</p>
-                              <p className="text-sm">{payment.cardName || 'YOUR NAME'}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] text-gray-400 uppercase">Expires</p>
-                              <p className="text-sm">{payment.expiry || 'MM/YY'}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="md:col-span-2">
-                          <Label htmlFor="cardName">Name on Card *</Label>
-                          <Input
-                            id="cardName"
-                            value={payment.cardName}
-                            onChange={(e) => setPayment({ ...payment, cardName: e.target.value })}
-                            placeholder="John Doe"
-                            className="mt-1"
-                          />
-                        </div>
-                        <div className="md:col-span-2">
-                          <Label htmlFor="cardNumber">Card Number *</Label>
-                          <Input
-                            id="cardNumber"
-                            value={payment.cardNumber}
-                            onChange={(e) =>
-                              setPayment({ ...payment, cardNumber: formatCardNumber(e.target.value) })
-                            }
-                            placeholder="4242 4242 4242 4242"
-                            className="mt-1"
-                            maxLength={19}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="expiry">Expiry Date *</Label>
-                          <Input
-                            id="expiry"
-                            value={payment.expiry}
-                            onChange={(e) =>
-                              setPayment({ ...payment, expiry: formatExpiry(e.target.value) })
-                            }
-                            placeholder="MM/YY"
-                            className="mt-1"
-                            maxLength={5}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="cvv">CVV *</Label>
-                          <Input
-                            id="cvv"
-                            value={payment.cvv}
-                            onChange={(e) =>
-                              setPayment({ ...payment, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) })
-                            }
-                            placeholder="123"
-                            className="mt-1"
-                            maxLength={4}
-                            type="password"
-                          />
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-2">
-                        This is a demo checkout. No real payment will be processed.
-                      </p>
-                      {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+                    {/* Payment Options Grid */}
+                    <div className="space-y-3 mb-6">
+                      {paymentOptions.map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => setSelectedPayment(option.id)}
+                          className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
+                            selectedPayment === option.id
+                              ? `${option.bgColor} border-current shadow-sm`
+                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-2xl shadow-sm flex-shrink-0 border border-gray-100">
+                            {option.icon}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-900 text-sm">{option.label}</p>
+                            <p className="text-xs text-gray-500">{option.subtitle}</p>
+                          </div>
+                          <div
+                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                              selectedPayment === option.id
+                                ? 'border-[#FCD116] bg-[#FCD116]'
+                                : 'border-gray-300'
+                            }`}
+                          >
+                            {selectedPayment === option.id && (
+                              <Check className="w-3.5 h-3.5 text-white" />
+                            )}
+                          </div>
+                        </button>
+                      ))}
                     </div>
+
+                    {/* Mobile Money Form */}
+                    {(selectedPayment === 'mtn_momo' || selectedPayment === 'vodafone_cash' || selectedPayment === 'airteltigo_money') && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-4 bg-gray-50 rounded-xl border space-y-4">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Smartphone className="w-5 h-5 text-[#C59F00]" />
+                            <h3 className="font-semibold text-gray-900 text-sm">
+                              {paymentOptions.find((p) => p.id === selectedPayment)?.label} Details
+                            </h3>
+                          </div>
+
+                          <div>
+                            <Label htmlFor="momoPhone">Mobile Money Number *</Label>
+                            <div className="relative mt-1">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">+233</span>
+                              <Input
+                                id="momoPhone"
+                                value={momoPhone}
+                                onChange={(e) => setMomoPhone(formatGhanaPhone(e.target.value))}
+                                placeholder="24 XXX XXXX"
+                                className="pl-14"
+                                maxLength={10}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                            <p className="text-xs text-amber-800 flex items-start gap-2">
+                              <span className="text-base flex-shrink-0">💡</span>
+                              <span>
+                                An MoMo prompt will be sent to your phone to confirm payment.
+                                Please ensure you have sufficient balance and your MoMo is active.
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Card Form */}
+                    {selectedPayment === 'card' && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-4 bg-gray-50 rounded-xl border space-y-4">
+                          <div className="flex items-center gap-3 mb-2">
+                            <CreditCard className="w-5 h-5 text-[#C59F00]" />
+                            <h3 className="font-semibold text-gray-900 text-sm">Card Details</h3>
+                            <div className="flex gap-2 ml-auto">
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-medium">VISA</Badge>
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-medium">MASTERCARD</Badge>
+                            </div>
+                          </div>
+
+                          {/* Visual Card */}
+                          <div className="w-full h-40 bg-gradient-to-br from-[#002B1B] via-[#004D2E] to-[#006B3F] rounded-xl p-5 text-white relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-[#FCD116]/10 rounded-full -translate-y-10 translate-x-10" />
+                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#FCD116]/10 rounded-full translate-y-10 -translate-x-10" />
+                            <div className="relative">
+                              <div className="flex justify-between items-start mb-6">
+                                <CreditCard className="w-7 h-7 text-[#FCD116]/60" />
+                                <span className="text-xs text-white/60 font-medium">DEBIT / CREDIT</span>
+                              </div>
+                              <p className="text-base tracking-widest font-mono mb-4">
+                                {cardInfo.cardNumber || '•••• •••• •••• ••••'}
+                              </p>
+                              <div className="flex justify-between items-end">
+                                <div>
+                                  <p className="text-[9px] text-white/50 uppercase">Card Holder</p>
+                                  <p className="text-xs">{cardInfo.cardName || 'YOUR NAME'}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[9px] text-white/50 uppercase">Expires</p>
+                                  <p className="text-xs">{cardInfo.expiry || 'MM/YY'}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="md:col-span-2">
+                              <Label htmlFor="cardName">Name on Card *</Label>
+                              <Input
+                                id="cardName"
+                                value={cardInfo.cardName}
+                                onChange={(e) => setCardInfo({ ...cardInfo, cardName: e.target.value })}
+                                placeholder="Name on card"
+                                className="mt-1"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <Label htmlFor="cardNumber">Card Number *</Label>
+                              <Input
+                                id="cardNumber"
+                                value={cardInfo.cardNumber}
+                                onChange={(e) => setCardInfo({ ...cardInfo, cardNumber: formatCardNumber(e.target.value) })}
+                                placeholder="0000 0000 0000 0000"
+                                className="mt-1"
+                                maxLength={19}
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="expiry">Expiry Date *</Label>
+                              <Input
+                                id="expiry"
+                                value={cardInfo.expiry}
+                                onChange={(e) => setCardInfo({ ...cardInfo, expiry: formatExpiry(e.target.value) })}
+                                placeholder="MM/YY"
+                                className="mt-1"
+                                maxLength={5}
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="cvv">CVV *</Label>
+                              <Input
+                                id="cvv"
+                                value={cardInfo.cvv}
+                                onChange={(e) => setCardInfo({ ...cardInfo, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                                placeholder="123"
+                                className="mt-1"
+                                maxLength={4}
+                                type="password"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Cash on Delivery Info */}
+                    {selectedPayment === 'cash_on_delivery' && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                          <div className="flex items-start gap-3">
+                            <Truck className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <h3 className="font-semibold text-green-800 text-sm">Cash on Delivery</h3>
+                              <p className="text-xs text-green-700 mt-1">
+                                Pay with cash when your order is delivered to your doorstep. Please have the exact amount ready.
+                                Our delivery partner will contact you before arrival.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Security badge */}
+                    <div className="flex items-center gap-2 mt-4 text-xs text-gray-500">
+                      <ShieldCheck className="w-4 h-4 text-green-500" />
+                      <span>Your payment information is secure and encrypted</span>
+                    </div>
+
+                    {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
                   </CardContent>
                 </Card>
               )}
 
+              {/* ====== STEP 3: REVIEW ====== */}
               {currentStep === 3 && (
                 <Card>
                   <CardContent className="p-6 space-y-6">
@@ -435,9 +728,7 @@ export default function CheckoutPage() {
                             key={item.productId}
                             className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                           >
-                            <div className="w-12 h-12 rounded bg-gradient-to-br from-[#FCD116] to-[#D4AA00] flex items-center justify-center flex-shrink-0">
-                              <span className="text-xl">{getProductEmoji(item.product?.images)}</span>
-                            </div>
+                            <ProductThumb images={item.product?.images} name={item.product?.name || ''} />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">{item.product?.name}</p>
                               <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
@@ -455,16 +746,20 @@ export default function CheckoutPage() {
                     {/* Shipping */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-semibold text-gray-900">Shipping Address</h3>
+                        <h3 className="text-sm font-semibold text-gray-900">Delivery Address</h3>
                         <Button variant="ghost" size="sm" className="text-xs text-[#C59F00]" onClick={() => setCurrentStep(1)}>
                           Edit
                         </Button>
                       </div>
-                      <p className="text-sm text-gray-700">
-                        {shipping.name}<br />
-                        {shipping.address}<br />
-                        {shipping.city}, {shipping.state} {shipping.zip}
-                      </p>
+                      <div className="text-sm text-gray-700 space-y-0.5">
+                        <p className="font-medium">{shipping.name}</p>
+                        <p>{shipping.address}</p>
+                        <p>{shipping.city}, {shipping.region}</p>
+                        <p className="flex items-center gap-1.5 text-gray-500">
+                          <Phone className="w-3.5 h-3.5" />
+                          +233 {shipping.phone}
+                        </p>
+                      </div>
                     </div>
 
                     <Separator />
@@ -477,10 +772,12 @@ export default function CheckoutPage() {
                           Edit
                         </Button>
                       </div>
-                      <p className="text-sm text-gray-700 flex items-center gap-2">
-                        <CreditCard className="w-4 h-4" />
-                        Card ending in {payment.cardNumber.slice(-4) || '****'}
-                      </p>
+                      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <span className="text-2xl">
+                          {paymentOptions.find((p) => p.id === selectedPayment)?.icon}
+                        </span>
+                        <p className="text-sm font-medium text-gray-900">{getPaymentLabel()}</p>
+                      </div>
                     </div>
 
                     {error && <p className="text-sm text-red-500">{error}</p>}
@@ -518,7 +815,7 @@ export default function CheckoutPage() {
                 {submitting ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Placing Order...
+                    Processing Payment...
                   </>
                 ) : (
                   <>
@@ -536,6 +833,30 @@ export default function CheckoutPage() {
           <Card className="sticky top-40 border-gray-200">
             <CardContent className="p-4 space-y-3">
               <h3 className="font-semibold text-gray-900">Order Summary</h3>
+
+              {/* Mini cart items */}
+              <div className="space-y-2 pb-3 border-b">
+                {items.slice(0, 4).map((item) => (
+                  <div key={item.productId} className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {(() => {
+                        const imgs = parseImages(item.product?.images)
+                        const realImg = imgs.find(isImageUrl)
+                        if (realImg) {
+                          return <img src={realImg} alt="" className="w-full h-full object-cover" />
+                        }
+                        return <span className="text-sm">{getEmojiFallback(item.product?.images)}</span>
+                      })()}
+                    </div>
+                    <p className="text-xs text-gray-600 truncate flex-1">{item.product?.name}</p>
+                    <span className="text-xs text-gray-400">x{item.quantity}</span>
+                  </div>
+                ))}
+                {items.length > 4 && (
+                  <p className="text-xs text-gray-400">+{items.length - 4} more items</p>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Subtotal</span>
@@ -544,11 +865,11 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Shipping</span>
                   <span className={shippingCost === 0 ? 'text-green-600 font-medium' : 'font-medium'}>
-                    {shippingCost === 0 ? 'FREE' : `GH₵{shippingCost.toFixed(2)}`}
+                    {shippingCost === 0 ? 'FREE' : `GH₵${shippingCost.toFixed(2)}`}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Tax</span>
+                  <span className="text-gray-600">Tax (VAT)</span>
                   <span className="font-medium">GH₵{tax.toFixed(2)}</span>
                 </div>
               </div>
@@ -556,6 +877,18 @@ export default function CheckoutPage() {
               <div className="flex justify-between">
                 <span className="font-bold text-gray-900">Total</span>
                 <span className="text-lg font-bold text-[#C59F00]">GH₵{total.toFixed(2)}</span>
+              </div>
+
+              {/* Trust badges */}
+              <div className="pt-2 space-y-2">
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
+                  <span>Secure checkout</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <Truck className="w-3.5 h-3.5 text-blue-500" />
+                  <span>Delivery across Ghana</span>
+                </div>
               </div>
             </CardContent>
           </Card>
