@@ -3,6 +3,41 @@
 import { useAppStore } from '@/lib/store'
 import { ArrowUp } from 'lucide-react'
 
+function FooterLink({ slug, children }: { slug?: string; action?: () => void; children: React.ReactNode }) {
+  const { navigate } = useAppStore()
+
+  const handleClick = () => {
+    if (slug) {
+      navigate('info', { infoSlug: slug })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  return (
+    <li>
+      <button
+        onClick={handleClick}
+        className="text-sm text-gray-300 hover:text-white transition-colors text-left"
+      >
+        {children}
+      </button>
+    </li>
+  )
+}
+
+function FooterNavLink({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <li>
+      <button
+        onClick={onClick}
+        className="text-sm text-gray-300 hover:text-white transition-colors text-left"
+      >
+        {children}
+      </button>
+    </li>
+  )
+}
+
 export default function Footer() {
   const { navigate } = useAppStore()
 
@@ -22,124 +57,77 @@ export default function Footer() {
 
       {/* Main footer */}
       <div className="bg-[#004D2E] text-white">
-        <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Get to Know Us */}
           <div>
             <h3 className="font-bold text-sm mb-3">Get to Know Us</h3>
             <ul className="space-y-2">
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  About Zonkomi Shop
-                </span>
-              </li>
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Careers
-                </span>
-              </li>
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Press Releases
-                </span>
-              </li>
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Sustainability
-                </span>
-              </li>
+              <FooterLink slug="about">About Zonkomi Shop</FooterLink>
+              <FooterLink slug="careers">Careers</FooterLink>
+              <FooterLink slug="press">Press Releases</FooterLink>
+              <FooterLink slug="sustainability">Sustainability</FooterLink>
             </ul>
           </div>
 
-          {/* Make Money */}
+          {/* Make Money with Us */}
           <div>
             <h3 className="font-bold text-sm mb-3">Make Money with Us</h3>
             <ul className="space-y-2">
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Sell on Zonkomi Shop
-                </span>
-              </li>
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Affiliate Program
-                </span>
-              </li>
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Advertise Products
-                </span>
-              </li>
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Trade-In Program
-                </span>
-              </li>
+              <FooterLink slug="sell-on-zonkomi">Sell on Zonkomi Shop</FooterLink>
+              <FooterLink slug="affiliate">Affiliate Program</FooterLink>
+              <FooterLink slug="advertise">Advertise Products</FooterLink>
+              <FooterLink slug="trade-in">Trade-In Program</FooterLink>
             </ul>
           </div>
 
-          {/* Payment */}
+          {/* Payment Options */}
           <div>
             <h3 className="font-bold text-sm mb-3">Payment Options</h3>
             <ul className="space-y-2">
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Credit Card
-                </span>
-              </li>
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Debit Card
-                </span>
-              </li>
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Gift Cards
-                </span>
-              </li>
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Financing Available
-                </span>
-              </li>
+              <FooterLink slug="payments">Mobile Money</FooterLink>
+              <FooterLink slug="payments">Credit / Debit Card</FooterLink>
+              <FooterLink slug="giftcards">Gift Cards</FooterLink>
+              <FooterLink slug="financing">Financing Available</FooterLink>
             </ul>
           </div>
 
-          {/* Let Us Help */}
+          {/* Let Us Help You */}
           <div>
             <h3 className="font-bold text-sm mb-3">Let Us Help You</h3>
             <ul className="space-y-2">
-              <li>
-                <button
-                  onClick={() => navigate('account')}
-                  className="text-sm text-gray-300 hover:text-white transition-colors"
-                >
-                  Your Account
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => navigate('orders')}
-                  className="text-sm text-gray-300 hover:text-white transition-colors"
-                >
-                  Your Orders
-                </button>
-              </li>
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Shipping &amp; Returns
-                </span>
-              </li>
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Customer Service
-                </span>
-              </li>
-              <li>
-                <span className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                  Help
-                </span>
-              </li>
+              <FooterNavLink onClick={() => navigate('account')}>Your Account</FooterNavLink>
+              <FooterNavLink onClick={() => navigate('orders')}>Your Orders</FooterNavLink>
+              <FooterLink slug="shipping">Shipping &amp; Returns</FooterLink>
+              <FooterLink slug="customer-service">Customer Service</FooterLink>
+              <FooterLink slug="help">Help</FooterLink>
             </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Ghana Payment Methods Strip */}
+      <div className="bg-[#003D26] text-white">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+            <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">We Accept:</span>
+            <div className="flex flex-wrap items-center gap-3">
+              {[
+                { label: 'MTN MoMo', color: 'bg-yellow-500' },
+                { label: 'Vodafone Cash', color: 'bg-red-500' },
+                { label: 'AT Money', color: 'bg-blue-500' },
+                { label: 'Visa', color: 'bg-purple-600' },
+                { label: 'Mastercard', color: 'bg-orange-600' },
+                { label: 'Cash', color: 'bg-green-600' },
+              ].map((pm) => (
+                <span
+                  key={pm.label}
+                  className="inline-flex items-center gap-1.5 text-xs text-gray-300 bg-white/5 px-2.5 py-1 rounded-md border border-white/10"
+                >
+                  <span className={`w-2 h-2 rounded-full ${pm.color}`} />
+                  {pm.label}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </div>

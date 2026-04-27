@@ -98,6 +98,7 @@ export type AppView =
   | 'login'
   | 'account'
   | 'admin'
+  | 'info'
 
 // Shared persist options that skip server-side hydration
 // to prevent hydration mismatches from localStorage
@@ -197,10 +198,11 @@ interface AppStore {
   selectedProductId: string | null
   selectedCategoryId: string | null
   selectedOrderNumber: string | null
+  selectedInfoSlug: string | null
   searchQuery: string
   sortBy: string
   priceRange: [number, number]
-  navigate: (view: AppView, params?: { productId?: string; categoryId?: string; orderNumber?: string }) => void
+  navigate: (view: AppView, params?: { productId?: string; categoryId?: string; orderNumber?: string; infoSlug?: string }) => void
   setSearchQuery: (query: string) => void
   setSortBy: (sort: string) => void
   setPriceRange: (range: [number, number]) => void
@@ -212,6 +214,7 @@ export const useAppStore = create<AppStore>()((set) => ({
   selectedProductId: null,
   selectedCategoryId: null,
   selectedOrderNumber: null,
+  selectedInfoSlug: null,
   searchQuery: '',
   sortBy: 'newest',
   priceRange: [0, 5000],
@@ -221,6 +224,7 @@ export const useAppStore = create<AppStore>()((set) => ({
       selectedProductId: params?.productId ?? null,
       selectedCategoryId: params?.categoryId ?? null,
       selectedOrderNumber: params?.orderNumber ?? null,
+      selectedInfoSlug: params?.infoSlug ?? null,
     }),
   setSearchQuery: (searchQuery) => set({ searchQuery }),
   setSortBy: (sortBy) => set({ sortBy }),

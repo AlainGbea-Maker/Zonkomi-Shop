@@ -17,6 +17,7 @@ import AccountPage from '@/components/pages/AccountPage'
 import LoginPage from '@/components/pages/LoginPage'
 import AdminDashboard from '@/components/pages/AdminDashboard'
 import SpinWheel from '@/components/SpinWheel'
+import ContentPage from '@/components/pages/ContentPage'
 
 const pageComponents: Record<string, React.ComponentType> = {
   home: HomePage,
@@ -30,6 +31,7 @@ const pageComponents: Record<string, React.ComponentType> = {
   login: LoginPage,
   account: AccountPage,
   admin: AdminDashboard,
+  info: ContentPage,
 }
 
 // useSyncExternalStore ensures server returns false (spinner) and client returns true (content)
@@ -40,7 +42,7 @@ function useHydrated() {
 }
 
 export default function Home() {
-  const { view, selectedProductId, selectedOrderNumber } = useAppStore()
+  const { view, selectedProductId, selectedOrderNumber, selectedInfoSlug } = useAppStore()
   const mounted = useHydrated()
   const rehydrated = useRef(false)
 
@@ -58,6 +60,7 @@ export default function Home() {
   const getAnimKey = () => {
     if (view === 'product-detail') return `${view}-${selectedProductId || ''}`
     if (view === 'order-detail') return `${view}-${selectedOrderNumber || ''}`
+    if (view === 'info') return `${view}-${selectedInfoSlug || ''}`
     return view
   }
 

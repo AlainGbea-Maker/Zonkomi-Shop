@@ -250,3 +250,36 @@ Stage Summary:
 - Phone fields across the app use Ghana +233 format with 🇬🇭 flag emoji
 - Demo user now has Ghana identity instead of US
 
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Populate footer content pages with real, contextual content
+
+Work Log:
+- Added 'info' view to AppView type in store.ts
+- Added selectedInfoSlug to AppStore and updated navigate()
+- Created ContentPage.tsx with 14 content pages:
+  - about: About Zonkomi Shop with mission, values, stats
+  - careers: Job listings with roles, departments, locations
+  - press: 5 press releases from Aug 2024 to Jan 2025
+  - sustainability: Eco stats, 4 sustainability pillars
+  - sell-on-zonkomi: 4-step seller process + CTA card
+  - affiliate: Commission rates, how it works, join CTA
+  - advertise: 4 ad tiers with pricing
+  - trade-in: 5-step process, accepted device categories
+  - payments: All 5 Ghana payment methods with descriptions
+  - shipping: Rates, free threshold, 30-day return policy
+  - customer-service: WhatsApp, email, phone, visit us + hours
+  - help: 8 FAQs covering common questions
+  - giftcards: Denominations display with features
+  - financing: 3-installment 0% interest plan details
+- Rewired Footer.tsx with FooterLink components navigating to content pages
+- Added Ghana payment methods strip (MTN MoMo, VF Cash, AT Money, Visa, MC, Cash)
+- Registered ContentPage in page.tsx with info slug routing
+- All lint checks pass
+
+Stage Summary:
+- All footer links are now fully functional and navigate to detailed content pages
+- Content is tailored for Ghana market (GH₵ pricing, Ghana regions, local payment methods)
+- Payment methods strip shows all accepted methods with color-coded badges
