@@ -35,7 +35,7 @@ export async function GET(request: Request) {
 
     // Calculate average rating
     const avgResult = await db.review.aggregate({
-      where: productId ? { productId } : { userId },
+      where: productId ? { productId } : userId ? { userId } : {},
       _avg: { rating: true },
       _count: true,
     })
@@ -43,7 +43,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       reviews,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
-      average: avgResult._avg.rating || 0,
+      average: avgResult._avg?.rating || 0,
       totalReviews: avgResult._count,
     })
   } catch (error) {

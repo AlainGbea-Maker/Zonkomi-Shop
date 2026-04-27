@@ -28,8 +28,9 @@ export async function withAuth(
     )
   }
 
-  request.user = payload
-  return handler(request, payload)
+  const authedRequest = request as AuthRequest
+  authedRequest.user = payload
+  return handler(authedRequest, payload)
 }
 
 export async function withAdmin(
