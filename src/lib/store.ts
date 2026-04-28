@@ -21,6 +21,7 @@ export interface Product {
   brand: string | null
   warranty: string
   active: boolean
+  sku?: string
   category?: Category
   reviews?: Review[]
 }

@@ -214,6 +214,9 @@ export default function ProductDetailPage() {
               {product.brand && (
                 <span className="text-sm text-gray-500">by <span className="font-medium text-gray-700">{product.brand}</span></span>
               )}
+              {product.sku && (
+                <span className="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-0.5 rounded">{product.sku}</span>
+              )}
             </div>
 
             {/* Name */}

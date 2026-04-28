@@ -118,6 +118,40 @@ export function getCategoriesWithCount() {
   return allCategories.map(c => ({ ...c, _count: { products: counts[c.id] || 0 } }))
 }
 
+// ==================== SKU GENERATOR ====================
+// Format: ZKS-CAT-NNNN (e.g. ZKS-LAP-0042)
+const CATEGORY_SKU_PREFIX: Record<string, string> = {
+  'cat-laptops': 'LAP',
+  'cat-smartphones': 'PHN',
+  'cat-tablets': 'TAB',
+  'cat-headphones': 'AUD',
+  'cat-monitors': 'MON',
+  'cat-desktops': 'DSK',
+  'cat-cameras': 'CAM',
+  'cat-gaming': 'GAM',
+}
+
+const skuCounters: Record<string, number> = {}
+
+function generateSKU(categoryId: string): string {
+  const prefix = CATEGORY_SKU_PREFIX[categoryId] || 'GEN'
+
+  if (!skuCounters[prefix]) {
+    // Count existing products with this prefix to avoid collisions
+    let max = 0
+    for (const p of allProducts) {
+      if (p.sku && p.sku.startsWith(`ZKS-${prefix}-`)) {
+        const num = parseInt(p.sku.split('-')[2], 10)
+        if (num > max) max = num
+      }
+    }
+    skuCounters[prefix] = max
+  }
+
+  skuCounters[prefix]++
+  return `ZKS-${prefix}-${String(skuCounters[prefix]).padStart(4, '0')}`
+}
+
 // ==================== ADMIN PRODUCT CRUD ====================
 export function createProduct(data: {
   name: string
@@ -160,6 +194,7 @@ export function createProduct(data: {
     brand: data.brand || null,
     warranty: data.warranty || '90 Days Warranty',
     active: true,
+    sku: generateSKU(data.categoryId),
   }
 
   allProducts.push(product)

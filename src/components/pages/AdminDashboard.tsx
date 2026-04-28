@@ -1272,7 +1272,7 @@ export default function AdminDashboard() {
                               </Badge>
                             </div>
                             <p className="text-[11px] text-gray-500 mt-0.5">
-                              {product.category?.name || 'Uncategorized'} &middot; {product.condition}
+                              <span className="font-mono text-gray-400">{product.sku || product.id}</span> &middot; {product.category?.name || 'Uncategorized'} &middot; {product.condition}
                             </p>
                           </div>
 
