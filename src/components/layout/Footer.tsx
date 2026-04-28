@@ -1,6 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import { useAppStore } from '@/lib/store'
+import { toast } from '@/hooks/use-toast'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ArrowUp } from 'lucide-react'
 
 function FooterLink({ slug, children }: { slug?: string; action?: () => void; children: React.ReactNode }) {
@@ -40,9 +44,20 @@ function FooterNavLink({ onClick, children }: { onClick: () => void; children: R
 
 export default function Footer() {
   const { navigate } = useAppStore()
+  const [email, setEmail] = useState('')
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim()) return
+    toast({
+      title: "You're in! 🎉",
+      description: "Welcome to the Zonkomi family. Check your inbox for a surprise.",
+    })
+    setEmail('')
   }
 
   return (
@@ -128,6 +143,30 @@ export default function Footer() {
                 </span>
               ))}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Newsletter */}
+      <div className="bg-[#002B1B] border-t border-[#004D2E]">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="max-w-xl mx-auto text-center">
+            <h3 className="text-lg font-bold text-white mb-1">Stay in the Loop</h3>
+            <p className="text-sm text-gray-400 mb-4">Get exclusive deals, new arrivals &amp; tech tips delivered to your inbox</p>
+            <form onSubmit={handleSubscribe} className="flex gap-2">
+              <Input
+                type="email"
+                placeholder="Enter your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-gray-500 h-10 rounded-lg"
+                required
+              />
+              <Button type="submit" className="bg-[#FCD116] hover:bg-[#D4AA00] text-[#1a1a1a] rounded-lg px-6 h-10 font-semibold">
+                Subscribe
+              </Button>
+            </form>
+            <p className="text-[10px] text-gray-500 mt-2">No spam, unsubscribe anytime. Join 10,000+ smart shoppers.</p>
           </div>
         </div>
       </div>

@@ -18,6 +18,10 @@ import {
   MapPin,
   Copy,
   Check,
+  Clock,
+  XCircle,
+  ClipboardCheck,
+  Loader2,
 } from 'lucide-react'
 
 // Reusable receipt number badge with copy functionality
@@ -71,22 +75,37 @@ function getStatusColor(status: string) {
   }
 }
 
-const statusSteps = [
-  { key: 'pending', label: 'Order Placed' },
-  { key: 'processing', label: 'Processing' },
-  { key: 'shipped', label: 'Shipped' },
-  { key: 'delivered', label: 'Delivered' },
+const timelineSteps = [
+  { key: 'pending', label: 'Pending', icon: Clock },
+  { key: 'confirmed', label: 'Confirmed', icon: ClipboardCheck },
+  { key: 'processing', label: 'Processing', icon: Loader2 },
+  { key: 'shipped', label: 'Shipped', icon: Truck },
+  { key: 'delivered', label: 'Delivered', icon: Package },
 ]
 
-function getStepStatus(currentStatus: string, stepKey: string) {
-  const order = statusSteps.findIndex((s) => s.key === currentStatus?.toLowerCase())
-  const step = statusSteps.findIndex((s) => s.key === stepKey)
+function getStepStatus(currentStatus: string, stepKey: string): 'completed' | 'current' | 'upcoming' | 'cancelled' {
+  const statusOrder = ['pending', 'confirmed', 'processing', 'shipped', 'delivered']
+  const orderIdx = statusOrder.indexOf(currentStatus?.toLowerCase())
+  const stepIdx = statusOrder.indexOf(stepKey)
+
   if (currentStatus?.toLowerCase() === 'cancelled') {
-    return step === 0 ? 'completed' : 'cancelled'
+    return stepIdx === 0 ? 'completed' : 'cancelled'
   }
-  if (order >= step) return 'completed'
-  if (order === step - 1) return 'current'
+  if (orderIdx >= stepIdx) return 'completed'
+  if (orderIdx === stepIdx - 1) return 'current'
   return 'upcoming'
+}
+
+function estimateStepDate(createdAt: string, stepIndex: number): string {
+  const created = new Date(createdAt)
+  const offsets = [0, 0.5, 1, 2, 4] // hours offset from creation
+  const date = new Date(created.getTime() + offsets[stepIndex] * 60 * 60 * 1000)
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
 }
 
 export default function OrderDetailPage() {
@@ -152,67 +171,125 @@ export default function OrderDetailPage() {
         </Badge>
       </div>
 
-      {/* Status Progress */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">Order Progress</h2>
-          <div className="flex items-center justify-between relative">
-            <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 -z-0">
+      {/* Order Status Timeline */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <h2 className="text-sm font-semibold text-gray-900 mb-6">Order Progress</h2>
+
+            {/* Cancelled notice */}
+            {order.status?.toLowerCase() === 'cancelled' && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg mb-6"
+              >
+                <XCircle className="w-6 h-6 text-red-500 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-red-800">Order Cancelled</p>
+                  <p className="text-xs text-red-600">This order has been cancelled. Contact customer service for assistance.</p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Timeline */}
+            <div className="relative">
+              {/* Connecting line background */}
+              <div className="absolute top-5 left-5 right-5 h-0.5 bg-gray-200 hidden sm:block" />
+              {/* Connecting line progress */}
               <div
-                className="h-full bg-[#FCD116] transition-all duration-500"
+                className="absolute top-5 left-5 h-0.5 hidden sm:block transition-all duration-700"
                 style={{
+                  backgroundColor: order.status?.toLowerCase() === 'cancelled' ? '#CE1126' : '#002B1B',
                   width: order.status?.toLowerCase() === 'cancelled'
                     ? '0%'
-                    : `${(statusSteps.findIndex((s) => s.key === order.status?.toLowerCase()) / (statusSteps.length - 1)) * 100}%`,
+                    : `${(timelineSteps.findIndex((s) => s.key === order.status?.toLowerCase()) / (timelineSteps.length - 1)) * 100}%`,
                 }}
               />
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4 sm:gap-0">
+                {timelineSteps.map((step, index) => {
+                  const stepStatus = getStepStatus(order.status, step.key)
+                  const StepIcon = step.icon
+                  return (
+                    <motion.div
+                      key={step.key}
+                      className="flex sm:flex-col items-center sm:items-center gap-3 sm:gap-0 relative z-10 flex-1"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1, duration: 0.3 }}
+                    >
+                      <div className="flex sm:flex-col items-center sm:items-center gap-3 sm:gap-0">
+                        {/* Circle */}
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center border-2 flex-shrink-0 transition-all duration-300 ${
+                            stepStatus === 'completed'
+                              ? 'bg-[#002B1B] border-[#002B1B] text-white'
+                              : stepStatus === 'current'
+                              ? 'bg-white border-[#002B1B] text-[#002B1B] ring-2 ring-[#002B1B]/20'
+                              : stepStatus === 'cancelled'
+                              ? 'bg-white border-red-300 text-red-500'
+                              : 'bg-white border-gray-300 text-gray-400'
+                          }`}
+                        >
+                          {stepStatus === 'completed' ? (
+                            <CheckCircle2 className="w-5 h-5" />
+                          ) : stepStatus === 'cancelled' ? (
+                            <XCircle className="w-5 h-5" />
+                          ) : stepStatus === 'current' ? (
+                            <StepIcon className="w-4 h-4" />
+                          ) : (
+                            <Circle className="w-4 h-4" />
+                          )}
+                        </div>
+                        {/* Label + date */}
+                        <div className="sm:mt-2 sm:text-center">
+                          <span
+                            className={`text-xs font-medium block ${
+                              stepStatus === 'completed'
+                                ? 'text-[#002B1B]'
+                                : stepStatus === 'current'
+                                ? 'text-gray-900 font-semibold'
+                                : stepStatus === 'cancelled'
+                                ? 'text-red-500'
+                                : 'text-gray-400'
+                            }`}
+                          >
+                            {step.label}
+                          </span>
+                          {(stepStatus === 'completed' || (stepStatus === 'current' && index === 0)) && (
+                            <span className="text-[10px] text-gray-500 mt-0.5 block">
+                              {estimateStepDate(order.createdAt, index)}
+                            </span>
+                          )}
+                          {stepStatus === 'current' && index > 0 && (
+                            <span className="text-[10px] text-[#C59F00] mt-0.5 block font-medium">
+                              Current
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )
+                })}
+              </div>
             </div>
-            {statusSteps.map((step, index) => {
-              const stepStatus = getStepStatus(order.status, step.key)
-              return (
-                <div key={step.key} className="flex flex-col items-center relative z-10">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                      stepStatus === 'completed'
-                        ? 'bg-[#FCD116] border-[#FCD116] text-white'
-                        : stepStatus === 'current'
-                        ? 'bg-white border-[#FCD116] text-[#C59F00]'
-                        : 'bg-white border-gray-300 text-gray-400'
-                    }`}
-                  >
-                    {stepStatus === 'completed' ? (
-                      <CheckCircle2 className="w-5 h-5" />
-                    ) : stepStatus === 'cancelled' ? (
-                      <span className="text-xs font-bold text-red-500">&times;</span>
-                    ) : (
-                      <Circle className="w-5 h-5" />
-                    )}
-                  </div>
-                  <span
-                    className={`text-xs mt-2 font-medium ${
-                      stepStatus === 'completed'
-                        ? 'text-[#C59F00]'
-                        : stepStatus === 'current'
-                        ? 'text-gray-900'
-                        : 'text-gray-400'
-                    }`}
-                  >
-                    {step.label}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-          <p className="text-xs text-gray-500 mt-4 text-center">
-            Ordered on {new Date(order.createdAt).toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
-          </p>
-        </CardContent>
-      </Card>
+
+            <p className="text-xs text-gray-500 mt-6 text-center">
+              Ordered on {new Date(order.createdAt).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </p>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Items */}

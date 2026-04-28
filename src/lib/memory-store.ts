@@ -109,7 +109,8 @@ export function getProductDetail(slugOrId: string) {
   const catMap = getCategoryMap()
   const product = allProducts.find(p => p.slug === slugOrId || p.id === slugOrId)
   if (!product) return null
-  return { ...product, category: catMap[product.categoryId], reviews: [] }
+  const reviewData = getReviewsByProduct(product.id)
+  return { ...product, category: catMap[product.categoryId], reviews: reviewData.reviews, reviewCount: reviewData.totalReviews, rating: reviewData.average || product.rating }
 }
 
 export function getCategoriesWithCount() {

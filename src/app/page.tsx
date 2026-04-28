@@ -17,6 +17,7 @@ import LoginPage from '@/components/pages/LoginPage'
 import AdminDashboard from '@/components/pages/AdminDashboard'
 import SpinWheel from '@/components/SpinWheel'
 import ContentPage from '@/components/pages/ContentPage'
+import WishlistPage from '@/components/pages/WishlistPage'
 
 const pageComponents: Record<string, React.ComponentType> = {
   home: HomePage,
@@ -31,6 +32,7 @@ const pageComponents: Record<string, React.ComponentType> = {
   account: AccountPage,
   admin: AdminDashboard,
   info: ContentPage,
+  wishlist: WishlistPage,
 }
 
 // useSyncExternalStore ensures server returns false (spinner) and client returns true (content)

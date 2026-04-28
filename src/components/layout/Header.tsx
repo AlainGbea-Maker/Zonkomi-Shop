@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useSyncExternalStore } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useAppStore, useCartStore, useUserStore, type Category } from '@/lib/store'
+import { useAppStore, useCartStore, useUserStore, useWishlistStore, type Category } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -40,6 +40,7 @@ import {
 export default function Header() {
   const { view, searchQuery, setSearchQuery, navigate } = useAppStore()
   const { items, getItemCount } = useCartStore()
+  const wishlistItems = useWishlistStore((s) => s.items)
   const { user, logout, isAdmin } = useUserStore()
   const [categories, setCategories] = useState<Category[]>([])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -276,6 +277,22 @@ export default function Header() {
               </div>
             </button>
 
+            {/* Wishlist */}
+            <button
+              onClick={() => navigate('wishlist')}
+              className="relative flex items-center text-white hover:outline hover:outline-1 hover:outline-white/50 rounded px-2 py-1.5 transition-colors"
+            >
+              <div className="relative">
+                <Heart className="w-7 h-7" />
+                {wishlistItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-[#CE1126] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    {wishlistItems.length > 99 ? '99+' : wishlistItems.length}
+                  </span>
+                )}
+              </div>
+              <span className="font-bold text-sm ml-1 hidden xl:block">Wishlist</span>
+            </button>
+
             {/* Cart */}
             <button
               onClick={() => navigate('cart')}
@@ -293,6 +310,17 @@ export default function Header() {
 
           {/* Mobile menu + cart */}
           <div className="flex md:hidden items-center gap-1">
+            <button
+              onClick={() => navigate('wishlist')}
+              className="relative text-white p-2"
+            >
+              <Heart className="w-6 h-6" />
+              {wishlistItems.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#CE1126] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  {wishlistItems.length > 99 ? '99+' : wishlistItems.length}
+                </span>
+              )}
+            </button>
             <button
               onClick={() => user ? navigate('cart') : navigate('login')}
               className="relative text-white p-2"
@@ -355,6 +383,7 @@ export default function Header() {
                       My Account
                     </div>
                     {[
+                      { label: 'My Wishlist', icon: Heart, action: () => navigate('wishlist') },
                       { label: 'My Orders', icon: Package, action: () => navigate('orders') },
                       { label: 'My Cart', icon: ShoppingCart, action: () => navigate('cart') },
                       { label: 'My Account', icon: Settings, action: () => navigate('account') },

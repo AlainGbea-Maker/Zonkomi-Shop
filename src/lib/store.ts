@@ -102,6 +102,7 @@ export type AppView =
   | 'account'
   | 'admin'
   | 'info'
+  | 'wishlist'
 
 // Shared persist options that skip server-side hydration
 // to prevent hydration mismatches from localStorage
@@ -128,6 +129,7 @@ export function rehydrateStores() {
   useCartStore.persist.rehydrate()
   useUserStore.persist.rehydrate()
   useWishlistStore.persist.rehydrate()
+  useRecentlyViewedStore.persist.rehydrate()
 }
 
 // ==================== CART STORE ====================
@@ -306,5 +308,28 @@ export const useWishlistStore = create<WishlistStore>()(
       clearAll: () => set({ items: [] }),
     }),
     persistOptions('zonkomi-wishlist')
+  )
+)
+
+// ==================== RECENTLY VIEWED STORE ====================
+interface RecentlyViewedStore {
+  items: string[]  // product IDs, max 20
+  addItem: (productId: string) => void
+  clearAll: () => void
+}
+
+export const useRecentlyViewedStore = create<RecentlyViewedStore>()(
+  persist(
+    (set, get) => ({
+      items: [],
+      addItem: (productId) => {
+        set((state) => {
+          const filtered = state.items.filter((id) => id !== productId)
+          return { items: [productId, ...filtered].slice(0, 20) }
+        })
+      },
+      clearAll: () => set({ items: [] }),
+    }),
+    persistOptions('zonkomi-recently-viewed')
   )
 )

@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useAppStore, type Product, type Category } from '@/lib/store'
+import { useAppStore, useRecentlyViewedStore, type Product, type Category } from '@/lib/store'
 import ProductCard from '@/components/ui/ProductCard'
-import { ArrowRight, Shield, RotateCcw, Award, CreditCard, Package, Users, Star, TrendingUp, Gift, Zap } from 'lucide-react'
+import { ArrowRight, Shield, RotateCcw, Award, CreditCard, Package, Users, Star, TrendingUp, Gift, Zap, Clock, Trash2, Quote, MapPin } from 'lucide-react'
 
 function parseImages(images: string | null | undefined): string[] {
   if (!images) return []
@@ -108,9 +108,11 @@ function getDefaultEmoji(index: number) {
 
 export default function HomePage() {
   const { navigate } = useAppStore()
+  const recentlyViewedStore = useRecentlyViewedStore()
   const [categories, setCategories] = useState<Category[]>([])
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
   const [dealProduct, setDealProduct] = useState<Product | null>(null)
+  const [recentlyViewedProducts, setRecentlyViewedProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -149,6 +151,23 @@ export default function HomePage() {
     }
     fetchData()
   }, [])
+
+  // Fetch recently viewed products
+  useEffect(() => {
+    const ids = recentlyViewedStore.items.slice(0, 4)
+    if (ids.length === 0) return
+    Promise.all(
+      ids.map((id) =>
+        fetch(`/api/products/${id}`)
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => data?.product || data)
+          .catch(() => null)
+      )
+    ).then((results) => {
+      const products = results.filter((p): p is Product => p != null)
+      setRecentlyViewedProducts(products)
+    })
+  }, [recentlyViewedStore.items])
 
   return (
     <div className="min-h-screen">
@@ -435,6 +454,53 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Recently Viewed Products */}
+      {recentlyViewedProducts.length > 0 && (
+        <section className="bg-white py-10 md:py-14">
+          <div className="max-w-7xl mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="flex items-center justify-between mb-6"
+            >
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-[#C59F00]" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Recently Viewed</h2>
+                  <p className="text-sm text-gray-500 mt-1">Products you've been checking out</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-500 hover:text-red-500 hover:bg-red-50"
+                onClick={() => {
+                  recentlyViewedStore.clearAll()
+                  setRecentlyViewedProducts([])
+                }}
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Clear History
+              </Button>
+            </motion.div>
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
+              variants={stagger}
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+            >
+              {recentlyViewedProducts.map((product) => (
+                <motion.div key={product.id} variants={fadeInUp}>
+                  <ProductCard product={product} />
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+      )}
+
       {/* Spin & Win Promo */}
       <section className="bg-gradient-to-br from-[#002B1B] via-[#003D26] to-[#002B1B] py-12 md:py-16 relative overflow-hidden">
         <div className="absolute inset-0 opacity-5">
@@ -510,6 +576,68 @@ export default function HomePage() {
                 </motion.div>
               ))}
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Customer Testimonials */}
+      <section className="bg-white py-12 md:py-16">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-8"
+          >
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">What Our Customers Say</h2>
+            <p className="text-sm text-gray-500 mt-2">Trusted by thousands of shoppers across Ghana</p>
+          </motion.div>
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={stagger}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+          >
+            {[
+              { name: "Ama Mensah", location: "Accra", text: "Bought a refurbished MacBook and it works like brand new! Saved over GH₵700. The 90-day warranty gave me confidence.", rating: 5, avatar: "AM" },
+              { name: "Kofi Asante", location: "Kumasi", text: "The iPhone 13 Pro I got is in excellent condition. Delivery was fast to Kumasi and the MoMo payment was seamless.", rating: 5, avatar: "KA" },
+              { name: "Efua Darko", location: "Takoradi", text: "Zonkomi Shop is now my go-to for electronics. The customer service is amazing and returns are hassle-free.", rating: 5, avatar: "ED" },
+              { name: "Yaw Osei", location: "Cape Coast", text: "Got my son a gaming console for his birthday. Great quality at a fraction of the cost. He loves it!", rating: 4, avatar: "YO" },
+              { name: "Nana Akua", location: "Tamale", text: "The delivery to Tamale was quick and well-packaged. My Dell laptop is perfect for my small business.", rating: 5, avatar: "NA" },
+              { name: "Kwabena Boateng", location: "Tema", text: "I've ordered 3 times now and every product has exceeded expectations. Zonkomi is the real deal!", rating: 5, avatar: "KB" },
+            ].map((t) => (
+              <motion.div key={t.avatar} variants={fadeInUp}>
+                <Card className="h-full border-gray-200 hover:shadow-lg transition-all duration-300">
+                  <CardContent className="p-6">
+                    <Quote className="w-8 h-8 text-[#C59F00]/30 mb-3" />
+                    <p className="text-sm text-gray-700 leading-relaxed mb-4">{t.text}</p>
+                    <div className="flex items-center gap-0.5 mb-4">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <span
+                          key={i}
+                          className={`text-sm ${i < t.rating ? 'text-[#FCD116]' : 'text-gray-300'}`}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#002B1B] to-[#006B3F] flex items-center justify-center text-white text-xs font-bold">
+                        {t.avatar}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{t.name}</p>
+                        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                          <MapPin className="w-3 h-3" />
+                          {t.location}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
           </motion.div>
         </div>
       </section>
