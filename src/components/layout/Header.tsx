@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useSyncExternalStore } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAppStore, useCartStore, useUserStore, type Category } from '@/lib/store'
 import { Button } from '@/components/ui/button'
@@ -44,20 +44,28 @@ export default function Header() {
   const [categories, setCategories] = useState<Category[]>([])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [catHovered, setCatHovered] = useState(false)
-  const [welcomeDismissed, setWelcomeDismissed] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return sessionStorage.getItem('zonkomi-welcome-dismissed') === 'true'
-  })
+  // Read welcome dismissed state from sessionStorage in a hydration-safe way
+  const welcomeDismissed = useSyncExternalStore(
+    (onChange) => {
+      window.addEventListener('zonkomi-welcome-change', onChange)
+      return () => window.removeEventListener('zonkomi-welcome-change', onChange)
+    },
+    () => {
+      try { return sessionStorage.getItem('zonkomi-welcome-dismissed') === 'true' }
+      catch { return false }
+    },
+    () => false
+  )
   const searchInputRef = useRef<HTMLInputElement>(null)
   const catTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const itemCount = getItemCount()
 
-  // Compute welcome visibility
+  // Compute welcome visibility — always false on server to avoid hydration mismatch
   const showWelcome = !!(user?.name && !welcomeDismissed)
 
   const dismissWelcome = () => {
-    setWelcomeDismissed(true)
-    sessionStorage.setItem('zonkomi-welcome-dismissed', 'true')
+    try { sessionStorage.setItem('zonkomi-welcome-dismissed', 'true') } catch {}
+    window.dispatchEvent(new Event('zonkomi-welcome-change'))
   }
 
   useEffect(() => {

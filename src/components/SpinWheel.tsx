@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X,
@@ -35,9 +35,9 @@ const SEGMENT_LABELS = [
   'FREE SHIP',
   'TRY AGAIN',
   '10% OFF',
-  'GH\u20B510 OFF',
+  'GH₵10 OFF',
   '15% OFF',
-  'GH\u20B525 OFF',
+  'GH₵25 OFF',
   '20% OFF',
 ]
 
@@ -46,20 +46,20 @@ const PRIZE_INDEX: Record<string, number> = {
   'Free Shipping': 1,
   'Try Again': 2,
   '10% Off': 3,
-  'GH\u20B510 Off': 4,
+  'GH₵10 Off': 4,
   '15% Off': 5,
-  'GH\u20B525 Off': 6,
+  'GH₵25 Off': 6,
   '20% Off': 7,
 }
 
 const SOCIAL_PROOF_DATA = [
   { name: 'Kwame A.', city: 'Accra', prize: '15% Off' },
   { name: 'Ama S.', city: 'Kumasi', prize: 'Free Shipping' },
-  { name: 'Kofi M.', city: 'Tamale', prize: 'GH\u20B525 Off' },
+  { name: 'Kofi M.', city: 'Tamale', prize: 'GH₵25 Off' },
   { name: 'Abena K.', city: 'Cape Coast', prize: '20% Off' },
   { name: 'Yaw B.', city: 'Tema', prize: '10% Off' },
   { name: 'Efua N.', city: 'Takoradi', prize: '5% Off' },
-  { name: 'Kwasi D.', city: 'Sunyani', prize: 'GH\u20B510 Off' },
+  { name: 'Kwasi D.', city: 'Sunyani', prize: 'GH₵10 Off' },
   { name: 'Akosua T.', city: 'Obuasi', prize: 'Free Shipping' },
   { name: 'Nana P.', city: 'Koforidua', prize: '15% Off' },
   { name: 'Adwoa R.', city: 'Ho', prize: '20% Off' },
@@ -418,8 +418,8 @@ export default function SpinWheel() {
     if (p.type === 'percent') return `${p.value}% discount on your next order`
     if (p.type === 'shipping') return 'Free shipping on your next order'
     if (p.type === 'fixed') {
-      let desc = `GH\u20B5${p.value} off your next order`
-      if (p.minOrder) desc += ` (min. GH\u20B5${p.minOrder})`
+      let desc = `GH₵ ${p.value} off your next order`
+      if (p.minOrder) desc += ` (min. GH₵ ${p.minOrder})`
       return desc
     }
     return ''
@@ -437,17 +437,21 @@ export default function SpinWheel() {
 
   const ledPositions = generateLEDPositions(28, 47)
 
-  // ─── Confetti particles ──────────────────────────────────────────────────
+  // ─── Confetti particles (stable via useMemo to avoid hydration mismatch) ────
 
-  const confettiParticles = Array.from({ length: 60 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    delay: Math.random() * 0.5,
-    duration: 2.5 + Math.random() * 1,
-    color: ['#FCD116', '#CE1126', '#00BFA5', '#FF6D00', '#7B1FA2', '#C2185B'][i % 6],
-    size: 4 + Math.random() * 8,
-    rotation: Math.random() * 720 - 360,
-  }))
+  const confettiParticles = useMemo(
+    () =>
+      Array.from({ length: 60 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        delay: Math.random() * 0.5,
+        duration: 2.5 + Math.random() * 1,
+        color: ['#FCD116', '#CE1126', '#00BFA5', '#FF6D00', '#7B1FA2', '#C2185B'][i % 6],
+        size: 4 + Math.random() * 8,
+        rotation: Math.random() * 720 - 360,
+      })),
+    []
+  )
 
   // ─── Segment text positions ──────────────────────────────────────────────
 
@@ -523,7 +527,7 @@ export default function SpinWheel() {
             <div className="absolute bottom-full right-0 mb-2 w-52 p-3 bg-white text-gray-800 text-xs rounded-xl shadow-xl border border-gray-100 pointer-events-none">
               <p className="font-bold text-gray-900 mb-1">🎁 Unlock Spin & Win!</p>
               <p className="text-gray-500 mb-2">
-                Add <span className="font-bold text-[#C59F00]">GH\u20B5{amountNeeded.toFixed(2)}</span> more to qualify
+                Add <span className="font-bold text-[#C59F00]">GH₵ {amountNeeded.toFixed(2)}</span> more to qualify
               </p>
               <div className="w-full bg-gray-200 rounded-full h-1.5">
                 <div
@@ -532,7 +536,7 @@ export default function SpinWheel() {
                 />
               </div>
               <p className="text-[10px] text-gray-400 mt-1">
-                {progress.toFixed(0)}% of GH\u20B5{SPIN_THRESHOLD}
+                {progress.toFixed(0)}% of GH₵ {SPIN_THRESHOLD}
               </p>
               <div className="absolute top-full right-4 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white" />
             </div>
@@ -607,7 +611,7 @@ export default function SpinWheel() {
                   Welcome to Zonkomi! 🎉
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Build your cart to GH\u20B5{SPIN_THRESHOLD}+ and unlock Spin & Win for exclusive discounts!
+                  Build your cart to GH₵ {SPIN_THRESHOLD}+ and unlock Spin & Win for exclusive discounts!
                 </p>
                 <button
                   onClick={() => setShowWelcome(false)}
@@ -695,13 +699,13 @@ export default function SpinWheel() {
                   <span className="text-xs font-medium text-gray-600">
                     Cart:{' '}
                     <span className="font-bold text-[#002B1B]">
-                      GH\u20B5{subtotal.toFixed(2)}
+                      GH₵ {subtotal.toFixed(2)}
                     </span>
                     {isEligible ? (
                       <span className="text-[#00BFA5] ml-1">✓ Qualifies!</span>
                     ) : (
                       <span className="text-gray-400 ml-1">
-                        (need GH\u20B5{amountNeeded.toFixed(2)} more)
+                        (need GH₵ {amountNeeded.toFixed(2)} more)
                       </span>
                     )}
                   </span>

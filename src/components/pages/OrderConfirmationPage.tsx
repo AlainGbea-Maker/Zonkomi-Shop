@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useId } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -9,10 +9,8 @@ import { CheckCircle2, Package, ShoppingBag, MapPin, Phone } from 'lucide-react'
 
 export default function OrderConfirmationPage() {
   const { selectedOrderNumber, navigate } = useAppStore()
-  const orderNumber = useMemo(() => {
-    if (selectedOrderNumber) return selectedOrderNumber
-    return 'ZD-' + Math.random().toString(36).substring(2, 10).toUpperCase()
-  }, [selectedOrderNumber])
+  const reactId = useId()
+  const orderNumber = selectedOrderNumber || `ZD-${reactId.slice(-8).toUpperCase()}`
 
   return (
     <div className="max-w-lg mx-auto px-4 py-16 text-center">

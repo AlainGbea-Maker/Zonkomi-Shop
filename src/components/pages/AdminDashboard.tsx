@@ -28,7 +28,7 @@ import {
   Package,
   ShoppingCart,
   Users,
-  DollarSign,
+  DollarSign as GhanaCedi,
   Clock,
   TrendingUp,
   AlertCircle,
@@ -482,7 +482,7 @@ export default function AdminDashboard() {
     { icon: Package, label: 'Products', value: stats?.totalProducts || 0, color: 'text-blue-600 bg-blue-50' },
     { icon: ShoppingCart, label: 'Orders', value: stats?.totalOrders || 0, color: 'text-purple-600 bg-purple-50' },
     { icon: Users, label: 'Customers', value: stats?.totalUsers || 0, color: 'text-emerald-600 bg-emerald-50' },
-    { icon: DollarSign, label: 'Revenue', value: `GH₵${((stats?.totalRevenue || 0)).toFixed(2)}`, color: 'text-[#C59F00] bg-yellow-50' },
+    { icon: GhanaCedi, label: 'Revenue', value: `GH₵${((stats?.totalRevenue || 0)).toFixed(2)}`, color: 'text-[#C59F00] bg-yellow-50' },
   ]
 
   return (

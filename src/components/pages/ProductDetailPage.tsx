@@ -249,7 +249,7 @@ export default function ProductDetailPage() {
                     Save {getDiscount()}%
                   </Badge>
                   <span className="text-sm text-green-600 font-medium">
-                    You save GH₵${getSavings()}
+                    You save GH₵{getSavings()}
                   </span>
                 </div>
               )}
