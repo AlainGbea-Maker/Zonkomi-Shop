@@ -70,11 +70,12 @@ model Product {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  category    Category    @relation(fields: [categoryId], references: [id])
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
-  reviews     Review[]
-  wishlist    Wishlist[]
+  category      Category       @relation(fields: [categoryId], references: [id])
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  reviews       Review[]
+  wishlist      Wishlist[]
+  productImages ProductImage[]
 
   @@index([categoryId])
   @@index([featured])
@@ -141,6 +142,23 @@ model OrderItem {
   product Product @relation(fields: [productId], references: [id])
 
   @@index([orderId])
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  url       String
+  alt       String?
+  width     Int?
+  height    Int?
+  sortOrder Int      @default(0)
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([isPrimary])
 }
 
 model Review {

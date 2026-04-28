@@ -23,7 +23,7 @@ function parseImages(images: string | null | undefined): string[] {
 }
 
 function isImageUrl(str: string): boolean {
-  return str.startsWith('/uploads/') || str.startsWith('http://') || str.startsWith('https://')
+  return str.startsWith('/images/') || str.startsWith('/uploads/') || str.startsWith('http://') || str.startsWith('https://')
 }
 
 function getProductEmoji(images: string | null | undefined, fallback = '📦'): string {
@@ -308,12 +308,21 @@ export default function HomePage() {
                     onClick={() => navigate('products', { categoryId: cat.id })}
                   >
                     <CardContent className="p-0">
-                      <div
-                        className={`aspect-[4/3] bg-gradient-to-br ${categoryGradients[cat.name] || getDefaultGradient(index)} flex items-center justify-center group-hover:scale-105 transition-transform duration-300`}
-                      >
-                        <span className="text-5xl md:text-6xl drop-shadow-md">
-                          {categoryEmojis[cat.name] || getDefaultEmoji(index)}
-                        </span>
+                      <div className="aspect-[4/3] overflow-hidden relative">
+                        {cat.image ? (
+                          <img
+                            src={cat.image}
+                            alt={cat.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className={`w-full h-full bg-gradient-to-br ${categoryGradients[cat.name] || getDefaultGradient(index)} flex items-center justify-center group-hover:scale-105 transition-transform duration-300`}>
+                            <span className="text-5xl md:text-6xl drop-shadow-md">
+                              {categoryEmojis[cat.name] || getDefaultEmoji(index)}
+                            </span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </div>
                       <div className="p-3 md:p-4 text-center">
                         <h3 className="font-semibold text-sm text-gray-900 group-hover:text-[#C59F00] transition-colors">

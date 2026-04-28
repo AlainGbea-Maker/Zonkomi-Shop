@@ -41,7 +41,7 @@ function parseImages(images: string | null | undefined): string[] {
 }
 
 function isImageUrl(str: string): boolean {
-  return str.startsWith('/uploads/') || str.startsWith('http://') || str.startsWith('https://')
+  return str.startsWith('/images/') || str.startsWith('/uploads/') || str.startsWith('http://') || str.startsWith('https://')
 }
 
 function getEmojiFallback(images: string | null | undefined, fallback = '📦'): string {
