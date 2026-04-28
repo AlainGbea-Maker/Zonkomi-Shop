@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       shippingCity,
       shippingState,
       shippingZip,
-      shippingCountry = 'US',
+      shippingCountry = 'GH',
       shippingPhone,
       paymentMethod = 'credit_card',
       notes,

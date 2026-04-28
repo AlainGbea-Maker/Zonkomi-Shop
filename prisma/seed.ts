@@ -60,8 +60,8 @@ async function main() {
       name: 'Admin User',
       password: adminPassword,
       role: 'admin',
-      phone: '(555) 000-0000',
-      address: 'Admin HQ',
+      phone: '+233201234567',
+      address: 'Admin HQ, Osu',
       city: 'Accra',
       state: 'Greater Accra',
       zipCode: 'GA-123',
@@ -75,15 +75,15 @@ async function main() {
   const demo = await db.user.create({
     data: {
       email: 'demo@zonkomishop.com',
-      name: 'Demo User',
+      name: 'Kwame Asante',
       password: demoPassword,
       role: 'customer',
-      phone: '(555) 123-4567',
-      address: '123 Demo Street',
-      city: 'San Francisco',
-      state: 'CA',
-      zipCode: '94102',
-      country: 'US',
+      phone: '+233241234567',
+      address: '12 Ring Road Central, Osu',
+      city: 'Accra',
+      state: 'Greater Accra',
+      zipCode: 'GA-123',
+      country: 'GH',
     },
   })
   console.log(`Created demo user: ${demo.email} (password: demo123)`)

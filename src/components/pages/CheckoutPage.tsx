@@ -293,8 +293,14 @@ export default function CheckoutPage() {
       setError('Please select your region')
       return false
     }
-    if (!shipping.phone.trim() || shipping.phone.replace(/\D/g, '').length < 10) {
+    const phoneDigits = shipping.phone.replace(/\D/g, '')
+    if (!phoneDigits || phoneDigits.length !== 10) {
       setError('Please enter a valid Ghana phone number (e.g. 024 XXX XXXX)')
+      return false
+    }
+    // Validate Ghana phone format: must start with 0 and second digit is valid prefix (2,5,3,4,7)
+    if (!/^0[2345]\d{8}$/.test(phoneDigits)) {
+      setError('Invalid phone number. Ghana numbers start with 02X, 03X, 04X, or 05X (e.g. 024 XXX XXXX)')
       return false
     }
     setError('')
@@ -303,8 +309,14 @@ export default function CheckoutPage() {
 
   const validatePayment = () => {
     if (selectedPayment === 'mtn_momo' || selectedPayment === 'vodafone_cash' || selectedPayment === 'airteltigo_money') {
-      if (!momoPhone.trim() || momoPhone.replace(/\D/g, '').length < 10) {
-        setError('Please enter a valid mobile money number')
+      const momoDigits = momoPhone.replace(/\D/g, '')
+      if (!momoDigits || momoDigits.length !== 10) {
+        setError('Please enter a valid mobile money number (e.g. 024 XXX XXXX)')
+        return false
+      }
+      // Validate Ghana phone format for MoMo
+      if (!/^0[2345]\d{8}$/.test(momoDigits)) {
+        setError('Invalid mobile money number. Ghana numbers start with 02X, 03X, 04X, or 05X (e.g. 024 XXX XXXX)')
         return false
       }
     }
@@ -410,7 +422,10 @@ export default function CheckoutPage() {
 
   const formatGhanaPhone = (value: string) => {
     const cleaned = value.replace(/\D/g, '').slice(0, 10)
-    return cleaned
+    // Format as 0XX XXX XXXX
+    if (cleaned.length <= 3) return cleaned
+    if (cleaned.length <= 6) return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`
+    return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`
   }
 
   return (
@@ -511,9 +526,9 @@ export default function CheckoutPage() {
                             id="phone"
                             value={shipping.phone}
                             onChange={(e) => setShipping({ ...shipping, phone: formatGhanaPhone(e.target.value) })}
-                            placeholder="24 XXX XXXX"
+                            placeholder="024 XXX XXXX"
                             className="pl-14"
-                            maxLength={10}
+                            maxLength={13}
                           />
                         </div>
                       </div>
@@ -636,9 +651,9 @@ export default function CheckoutPage() {
                                 id="momoPhone"
                                 value={momoPhone}
                                 onChange={(e) => setMomoPhone(formatGhanaPhone(e.target.value))}
-                                placeholder="24 XXX XXXX"
+                                placeholder="024 XXX XXXX"
                                 className="pl-14"
-                                maxLength={10}
+                                maxLength={13}
                               />
                             </div>
                           </div>

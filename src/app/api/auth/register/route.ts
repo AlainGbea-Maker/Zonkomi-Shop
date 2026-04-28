@@ -4,7 +4,7 @@ import { createUser, findUserByEmail, signToken } from '@/lib/memory-store'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, name, phone, address, city, state, zipCode, country = 'US', password } = body
+    const { email, name, phone, address, city, state, zipCode, country = 'GH', password } = body
 
     if (!email || !name) {
       return NextResponse.json({ error: 'Email and name are required' }, { status: 400 })

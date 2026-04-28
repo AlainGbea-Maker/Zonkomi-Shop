@@ -229,7 +229,7 @@ export function createUser(data: { email: string; name: string; phone?: string; 
     city: data.city,
     state: data.state,
     zipCode: data.zipCode,
-    country: data.country || 'US',
+    country: data.country || 'GH',
     role: 'customer',
     password: data.password, // plain text ok for in-memory demo
     createdAt: new Date().toISOString(),
@@ -709,7 +709,7 @@ export function createOrder(data: {
     shippingCity: data.shippingCity,
     shippingState: data.shippingState,
     shippingZip: data.shippingZip,
-    shippingCountry: data.shippingCountry || 'US',
+    shippingCountry: data.shippingCountry || 'GH',
     shippingPhone: data.shippingPhone || null,
     paymentMethod: data.paymentMethod || 'credit_card',
     paymentStatus: 'paid',
