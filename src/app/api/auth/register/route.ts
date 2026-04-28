@@ -10,16 +10,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email and name are required' }, { status: 400 })
     }
 
-    if (!password || password.length < 6) {
-      return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 })
-    }
+    // Auto-generate password if not provided (registration form doesn't require it)
+    const finalPassword = password || `auto-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 
     const existingUser = findUserByEmail(email)
     if (existingUser) {
       return NextResponse.json({ error: 'A user with this email already exists' }, { status: 409 })
     }
 
-    const user = createUser({ email, name, phone, address, city, state, zipCode, country, password })
+    const user = createUser({ email, name, phone, address, city, state, zipCode, country, password: finalPassword })
 
     const token = signToken({ userId: user.id, email: user.email, role: user.role })
 

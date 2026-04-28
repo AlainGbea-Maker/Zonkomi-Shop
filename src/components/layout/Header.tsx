@@ -40,7 +40,7 @@ import {
 export default function Header() {
   const { view, searchQuery, setSearchQuery, navigate } = useAppStore()
   const { items, getItemCount } = useCartStore()
-  const { user, logout } = useUserStore()
+  const { user, logout, isAdmin } = useUserStore()
   const [categories, setCategories] = useState<Category[]>([])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [catHovered, setCatHovered] = useState(false)
@@ -234,6 +234,12 @@ export default function Header() {
                       <Package className="mr-2 h-4 w-4" />
                       My Orders
                     </DropdownMenuItem>
+                    {isAdmin() && (
+                      <DropdownMenuItem onClick={() => navigate('admin')} className="text-[#C59F00] font-medium">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Admin Dashboard
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={() => navigate('cart')}>
                       <ShoppingCart className="mr-2 h-4 w-4" />
                       My Cart
@@ -352,6 +358,7 @@ export default function Header() {
                       { label: 'My Orders', icon: Package, action: () => navigate('orders') },
                       { label: 'My Cart', icon: ShoppingCart, action: () => navigate('cart') },
                       { label: 'My Account', icon: Settings, action: () => navigate('account') },
+                      ...(isAdmin() ? [{ label: 'Admin Dashboard', icon: Settings, action: () => navigate('admin') }] : []),
                     ].map((item) => (
                       <button
                         key={item.label}

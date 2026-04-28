@@ -126,7 +126,7 @@ export function ensureDemoUser(): StoredUser {
       state: 'Greater Accra',
       zipCode: 'GA-123',
       country: 'GH',
-      role: 'customer',
+      role: 'admin',
       password: 'demo123', // plain text ok for in-memory demo
       createdAt: new Date().toISOString(),
     }
