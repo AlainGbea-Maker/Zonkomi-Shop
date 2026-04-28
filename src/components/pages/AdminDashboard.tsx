@@ -55,6 +55,10 @@ import {
   BoxesIcon,
   ClipboardList,
   PieChart,
+  History,
+  Warehouse,
+  AlertOctagon,
+  Minus,
 } from 'lucide-react'
 
 // ==================== TYPES ====================
@@ -133,6 +137,27 @@ interface Category {
   slug: string
 }
 
+interface InventoryTransaction {
+  id: string
+  productId: string
+  productName: string
+  productSku: string
+  type: 'adjustment' | 'restock' | 'sale' | 'correction'
+  quantity: number
+  previousStock: number
+  newStock: number
+  reason: string
+  performedBy: string
+  createdAt: string
+}
+
+interface InventorySummary {
+  totalItems: number
+  totalValue: number
+  lowStockCount: number
+  outOfStockCount: number
+}
+
 interface ProductItem {
   id: string
   name: string
@@ -153,6 +178,7 @@ interface ProductItem {
   brand: string | null
   warranty: string
   createdAt: string
+  sku: string
   category: { id: string; name: string } | null
 }
 
@@ -307,6 +333,17 @@ export default function AdminDashboard() {
   const [editingStockValue, setEditingStockValue] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // --- Inventory state ---
+  const [inventoryHistory, setInventoryHistory] = useState<InventoryTransaction[]>([])
+  const [inventorySummary, setInventorySummary] = useState<InventorySummary | null>(null)
+  const [inventoryLoading, setInventoryLoading] = useState(false)
+  const [stockAdjustDialogOpen, setStockAdjustDialogOpen] = useState(false)
+  const [stockAdjustProduct, setStockAdjustProduct] = useState<ProductItem | null>(null)
+  const [stockAdjustQty, setStockAdjustQty] = useState(0)
+  const [stockAdjustReason, setStockAdjustReason] = useState('')
+  const [stockAdjustCustomReason, setStockAdjustCustomReason] = useState('')
+  const [stockAdjustSaving, setStockAdjustSaving] = useState(false)
+
   // ==================== DATA FETCHING ====================
 
   const fetchDashboard = useCallback(async () => {
@@ -371,6 +408,35 @@ export default function AdminDashboard() {
     }
   }, [token, productSearch, productCategoryFilter, productStatusFilter])
 
+  const fetchInventoryHistory = useCallback(async () => {
+    setInventoryLoading(true)
+    try {
+      const res = await fetch('/api/admin/inventory?limit=50', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      setInventoryHistory(data.transactions || [])
+    } catch {
+      // silently fail
+    } finally {
+      setInventoryLoading(false)
+    }
+  }, [token])
+
+  const fetchInventorySummary = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/inventory/summary', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      setInventorySummary(data)
+    } catch {
+      // silently fail
+    }
+  }, [token])
+
   const fetchCategories = useCallback(async () => {
     try {
       const res = await fetch('/api/categories')
@@ -399,6 +465,12 @@ export default function AdminDashboard() {
     if (!user || !isAdmin()) return
     fetchProducts()
   }, [user, token, isAdmin, fetchProducts])
+
+  useEffect(() => {
+    if (!user || !isAdmin()) return
+    fetchInventoryHistory()
+    fetchInventorySummary()
+  }, [user, token, isAdmin, fetchInventoryHistory, fetchInventorySummary])
 
   // ==================== ORDER HANDLERS ====================
 
@@ -601,10 +673,55 @@ export default function AdminDashboard() {
     }
   }
 
+  // --- Stock Adjustment Dialog ---
+  const openStockAdjustDialog = (product: ProductItem, qty: number) => {
+    setStockAdjustProduct(product)
+    setStockAdjustQty(qty)
+    setStockAdjustReason('')
+    setStockAdjustCustomReason('')
+    setStockAdjustDialogOpen(true)
+  }
+
+  const handleStockAdjustConfirm = async () => {
+    if (!stockAdjustProduct || stockAdjustQty === 0) return
+    setStockAdjustSaving(true)
+    try {
+      const finalReason = stockAdjustReason === 'Other' && stockAdjustCustomReason.trim()
+        ? stockAdjustCustomReason.trim()
+        : stockAdjustReason || (stockAdjustQty > 0 ? 'Manual restock' : 'Manual reduction')
+
+      const res = await fetch('/api/admin/inventory', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          productId: stockAdjustProduct.id,
+          quantity: stockAdjustQty,
+          reason: finalReason,
+        }),
+      })
+      if (res.ok) {
+        setStockAdjustDialogOpen(false)
+        fetchProducts()
+        fetchInventoryHistory()
+        fetchInventorySummary()
+        fetchDashboard()
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setStockAdjustSaving(false)
+    }
+  }
+
   const refreshAll = () => {
     fetchDashboard()
     fetchOrders()
     fetchProducts()
+    fetchInventoryHistory()
+    fetchInventorySummary()
   }
 
   // ==================== AUTH GUARD ====================
@@ -1163,7 +1280,66 @@ export default function AdminDashboard() {
           {/* ============================================================ */}
           {/* TAB 3: INVENTORY                                            */}
           {/* ============================================================ */}
-          <TabsContent value="inventory">
+          <TabsContent value="inventory" className="space-y-6">
+            {/* Inventory Summary Bar */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <Card className="border-gray-200 shadow-sm">
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-lg bg-[#002B1B]/10 flex items-center justify-center">
+                        <Warehouse className="w-4.5 h-4.5 text-[#002B1B]" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] md:text-xs text-gray-500">Total Items</p>
+                        <p className="text-sm md:text-lg font-bold text-gray-900">{inventorySummary?.totalItems ?? '-'}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-gray-200 shadow-sm">
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-lg bg-[#C59F00]/10 flex items-center justify-center">
+                        <GhanaCedi className="w-4.5 h-4.5 text-[#C59F00]" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] md:text-xs text-gray-500">Inventory Value</p>
+                        <p className="text-sm md:text-lg font-bold text-gray-900">{inventorySummary ? `GH\u20B5${inventorySummary.totalValue.toFixed(0)}` : '-'}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-gray-200 shadow-sm">
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-lg bg-yellow-100 flex items-center justify-center">
+                        <AlertTriangle className="w-4.5 h-4.5 text-yellow-600" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] md:text-xs text-gray-500">Low Stock</p>
+                        <p className="text-sm md:text-lg font-bold text-gray-900">{inventorySummary?.lowStockCount ?? '-'}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-gray-200 shadow-sm">
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-lg bg-[#CE1126]/10 flex items-center justify-center">
+                        <AlertOctagon className="w-4.5 h-4.5 text-[#CE1126]" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] md:text-xs text-gray-500">Out of Stock</p>
+                        <p className="text-sm md:text-lg font-bold text-gray-900">{inventorySummary?.outOfStockCount ?? '-'}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </motion.div>
+
+            {/* Products List Card */}
             <Card className="border-gray-200 shadow-sm">
               <CardHeader className="pb-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1276,9 +1452,9 @@ export default function AdminDashboard() {
                             </p>
                           </div>
 
-                          {/* Stock (inline quick-edit) */}
+                          {/* Stock (inline quick-edit + quick adjustment buttons on md+) */}
                           <div
-                            className="flex-shrink-0 hidden md:block"
+                            className="flex-shrink-0 hidden md:flex items-center gap-1"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {isEditingStock ? (
@@ -1293,17 +1469,47 @@ export default function AdminDashboard() {
                                 autoFocus
                               />
                             ) : (
-                              <button
-                                onClick={() => startEditStock(product)}
-                                className={`text-xs font-medium px-2 py-1 rounded-md border transition-colors ${
-                                  product.stock < 5
-                                    ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
-                                    : 'border-gray-200 bg-white text-gray-600 hover:border-[#C59F00] hover:text-[#C59F00]'
-                                }`}
-                                title="Click to edit stock"
-                              >
-                                Stock: {product.stock}
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => openStockAdjustDialog(product, -10)}
+                                  className="text-[10px] font-medium px-1.5 py-1 rounded border border-gray-200 bg-white text-red-500 hover:bg-red-50 hover:border-red-200 transition-colors"
+                                  title="Remove 10 units"
+                                >
+                                  -10
+                                </button>
+                                <button
+                                  onClick={() => openStockAdjustDialog(product, -5)}
+                                  className="text-[10px] font-medium px-1.5 py-1 rounded border border-gray-200 bg-white text-red-400 hover:bg-red-50 hover:border-red-200 transition-colors"
+                                  title="Remove 5 units"
+                                >
+                                  -5
+                                </button>
+                                <button
+                                  onClick={() => startEditStock(product)}
+                                  className={`text-xs font-medium px-2 py-1 rounded-md border transition-colors ${
+                                    product.stock < 5
+                                      ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
+                                      : 'border-gray-200 bg-white text-gray-600 hover:border-[#C59F00] hover:text-[#C59F00]'
+                                  }`}
+                                  title="Click to edit stock"
+                                >
+                                  {product.stock}
+                                </button>
+                                <button
+                                  onClick={() => openStockAdjustDialog(product, 5)}
+                                  className="text-[10px] font-medium px-1.5 py-1 rounded border border-gray-200 bg-white text-green-600 hover:bg-green-50 hover:border-green-200 transition-colors"
+                                  title="Add 5 units"
+                                >
+                                  +5
+                                </button>
+                                <button
+                                  onClick={() => openStockAdjustDialog(product, 10)}
+                                  className="text-[10px] font-medium px-1.5 py-1 rounded border border-gray-200 bg-white text-green-700 hover:bg-green-50 hover:border-green-200 transition-colors"
+                                  title="Add 10 units"
+                                >
+                                  +10
+                                </button>
+                              </>
                             )}
                           </div>
 
@@ -1352,6 +1558,114 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Inventory History */}
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+              <Card className="border-gray-200 shadow-sm">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base md:text-lg flex items-center gap-2">
+                    <History className="w-5 h-5 text-[#002B1B]" />
+                    Inventory History
+                    {!inventoryLoading && inventoryHistory.length > 0 && (
+                      <Badge variant="secondary" className="text-xs">{inventoryHistory.length}</Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {inventoryLoading ? (
+                    <div className="space-y-3">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <Skeleton key={i} className="h-12 rounded-lg" />
+                      ))}
+                    </div>
+                  ) : inventoryHistory.length === 0 ? (
+                    <div className="text-center py-8">
+                      <History className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+                      <p className="text-gray-500 text-sm">No inventory changes recorded yet</p>
+                      <p className="text-xs text-gray-400 mt-1">Use the +/- buttons on products to log stock adjustments</p>
+                    </div>
+                  ) : (
+                    <div className="max-h-96 overflow-y-auto">
+                      {/* Desktop table */}
+                      <div className="hidden md:block rounded-lg border border-gray-100 overflow-hidden">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="bg-gray-50 text-gray-500">
+                              <th className="text-left py-2.5 px-3 font-medium">Date</th>
+                              <th className="text-left py-2.5 px-3 font-medium">Product</th>
+                              <th className="text-left py-2.5 px-3 font-medium">SKU</th>
+                              <th className="text-center py-2.5 px-3 font-medium">Type</th>
+                              <th className="text-center py-2.5 px-3 font-medium">Qty Change</th>
+                              <th className="text-center py-2.5 px-3 font-medium">Stock</th>
+                              <th className="text-left py-2.5 px-3 font-medium">Reason</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {inventoryHistory.map((tx) => (
+                              <tr key={tx.id} className="border-t border-gray-50 hover:bg-gray-50/50 transition-colors">
+                                <td className="py-2.5 px-3 text-gray-600 whitespace-nowrap">
+                                  {new Date(tx.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </td>
+                                <td className="py-2.5 px-3 text-gray-800 font-medium truncate max-w-[180px]">{tx.productName}</td>
+                                <td className="py-2.5 px-3 text-gray-400 font-mono">{tx.productSku}</td>
+                                <td className="py-2.5 px-3 text-center">
+                                  <Badge className={`text-[10px] px-1.5 py-0 ${
+                                    tx.type === 'restock' ? 'bg-green-100 text-green-700' :
+                                    tx.type === 'correction' ? 'bg-orange-100 text-orange-700' :
+                                    tx.type === 'sale' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-gray-100 text-gray-700'
+                                  }`}>
+                                    {tx.type}
+                                  </Badge>
+                                </td>
+                                <td className={`py-2.5 px-3 text-center font-bold ${tx.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {tx.quantity > 0 ? '+' : ''}{tx.quantity}
+                                </td>
+                                <td className="py-2.5 px-3 text-center text-gray-600">
+                                  <span className="line-through text-gray-400">{tx.previousStock}</span>
+                                  <span className="mx-1">&rarr;</span>
+                                  <span className="font-semibold text-gray-800">{tx.newStock}</span>
+                                </td>
+                                <td className="py-2.5 px-3 text-gray-500 truncate max-w-[140px]">{tx.reason}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Mobile card list */}
+                      <div className="md:hidden space-y-2">
+                        {inventoryHistory.map((tx) => (
+                          <div key={tx.id} className="p-3 bg-gray-50 rounded-lg space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold text-gray-800 truncate max-w-[200px]">{tx.productName}</span>
+                              <Badge className={`text-[10px] px-1.5 py-0 flex-shrink-0 ${
+                                tx.quantity > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                              }`}>
+                                {tx.quantity > 0 ? '+' : ''}{tx.quantity}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2 text-[11px] text-gray-500">
+                              <span className="font-mono text-gray-400">{tx.productSku}</span>
+                              <span>&middot;</span>
+                              <span>{tx.previousStock} &rarr; {tx.newStock}</span>
+                              <span>&middot;</span>
+                              <span className="capitalize">{tx.type}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <p className="text-[11px] text-gray-500 truncate max-w-[200px]">{tx.reason}</p>
+                              <span className="text-[10px] text-gray-400 flex-shrink-0">
+                                {new Date(tx.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
           </TabsContent>
 
           {/* ============================================================ */}
@@ -1795,6 +2109,129 @@ export default function AdminDashboard() {
                   'Update Product'
                 ) : (
                   'Create Product'
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ===== STOCK ADJUSTMENT DIALOG ===== */}
+        <Dialog open={stockAdjustDialogOpen} onOpenChange={setStockAdjustDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg flex items-center gap-2">
+                {stockAdjustQty > 0 ? (
+                  <>
+                    <Plus className="w-5 h-5 text-green-600" />
+                    Add Stock
+                  </>
+                ) : (
+                  <>
+                    <Minus className="w-5 h-5 text-red-600" />
+                    Reduce Stock
+                  </>
+                )}
+              </DialogTitle>
+              <DialogDescription>
+                Adjust stock for <span className="font-semibold text-gray-900">{stockAdjustProduct?.name}</span>
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              {/* Current stock info */}
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Current Stock</span>
+                <span className={`text-sm font-bold ${
+                  (stockAdjustProduct?.stock ?? 0) < 5 ? 'text-red-600' : 'text-gray-900'
+                }`}>
+                  {stockAdjustProduct?.stock ?? 0} units
+                </span>
+              </div>
+
+              {/* Quantity to adjust */}
+              <div className="grid gap-2">
+                <Label htmlFor="stock-qty">Quantity to {stockAdjustQty > 0 ? 'Add' : 'Remove'}</Label>
+                <Input
+                  id="stock-qty"
+                  type="number"
+                  value={stockAdjustQty}
+                  onChange={(e) => setStockAdjustQty(parseInt(e.target.value) || 0)}
+                  className={`text-center font-bold text-lg h-12 ${
+                    stockAdjustQty > 0
+                      ? 'text-green-700 border-green-200 focus:border-green-400'
+                      : 'text-red-700 border-red-200 focus:border-red-400'
+                  }`}
+                />
+                {stockAdjustProduct && (
+                  <p className="text-xs text-gray-500 text-center">
+                    New stock will be: <span className="font-semibold text-gray-700">{stockAdjustProduct.stock + stockAdjustQty}</span> units
+                  </p>
+                )}
+              </div>
+
+              {/* Reason dropdown */}
+              <div className="grid gap-2">
+                <Label>Reason</Label>
+                <Select value={stockAdjustReason} onValueChange={setStockAdjustReason}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a reason" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Restock">Restock</SelectItem>
+                    <SelectItem value="Damaged">Damaged</SelectItem>
+                    <SelectItem value="Sold (manual)">Sold (manual)</SelectItem>
+                    <SelectItem value="Inventory Count">Inventory Count</SelectItem>
+                    <SelectItem value="Return">Return</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Custom reason text (shown when "Other" is selected) */}
+              {stockAdjustReason === 'Other' && (
+                <div className="grid gap-2">
+                  <Label htmlFor="custom-reason">Custom Reason</Label>
+                  <Input
+                    id="custom-reason"
+                    placeholder="Enter reason..."
+                    value={stockAdjustCustomReason}
+                    onChange={(e) => setStockAdjustCustomReason(e.target.value)}
+                  />
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setStockAdjustDialogOpen(false)}
+                className="rounded-lg"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleStockAdjustConfirm}
+                disabled={
+                  stockAdjustSaving ||
+                  stockAdjustQty === 0 ||
+                  !stockAdjustReason ||
+                  (stockAdjustReason === 'Other' && !stockAdjustCustomReason.trim())
+                }
+                className={`rounded-lg ${
+                  stockAdjustQty > 0
+                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                    : 'bg-[#CE1126] hover:bg-[#B00E1F] text-white'
+                }`}
+              >
+                {stockAdjustSaving ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    Confirm {stockAdjustQty > 0 ? `+${stockAdjustQty}` : stockAdjustQty}
+                  </>
                 )}
               </Button>
             </DialogFooter>

@@ -923,6 +923,117 @@ export function deleteReview(reviewId: string, userId: string): boolean {
   return true
 }
 
+// ==================== INVENTORY TRANSACTIONS ====================
+export interface InventoryTransaction {
+  id: string
+  productId: string
+  productName: string
+  productSku: string
+  type: 'adjustment' | 'restock' | 'sale' | 'correction'
+  quantity: number  // positive = added, negative = removed
+  previousStock: number
+  newStock: number
+  reason: string
+  performedBy: string  // user email/name
+  createdAt: string
+}
+
+const inventoryLog: InventoryTransaction[] = []
+
+export function adjustStock(
+  productId: string,
+  quantityChange: number,
+  reason: string,
+  performedBy: string
+): { success: boolean; transaction: InventoryTransaction | null; error?: string } {
+  const product = allProducts.find(p => p.id === productId)
+  if (!product) {
+    return { success: false, transaction: null, error: 'Product not found' }
+  }
+
+  const previousStock = product.stock
+  const newStock = Math.max(0, previousStock + quantityChange)
+
+  // If the quantity was clamped to 0, adjust the actual change
+  const actualChange = newStock - previousStock
+  if (actualChange === 0 && quantityChange !== 0) {
+    return { success: false, transaction: null, error: 'Stock cannot go below 0' }
+  }
+
+  product.stock = newStock
+
+  // Determine transaction type based on context
+  let txType: InventoryTransaction['type'] = 'adjustment'
+  if (actualChange > 0) {
+    txType = 'restock'
+  } else if (actualChange < 0) {
+    txType = 'correction'
+  }
+
+  const transaction: InventoryTransaction = {
+    id: generateId('inv-tx'),
+    productId: product.id,
+    productName: product.name,
+    productSku: product.sku || '',
+    type: txType,
+    quantity: actualChange,
+    previousStock,
+    newStock,
+    reason,
+    performedBy,
+    createdAt: new Date().toISOString(),
+  }
+
+  inventoryLog.unshift(transaction) // newest first
+
+  return { success: true, transaction }
+}
+
+export function getInventoryHistory(opts?: {
+  productId?: string
+  type?: string
+  limit?: number
+  offset?: number
+}): { transactions: InventoryTransaction[]; total: number } {
+  let filtered = [...inventoryLog]
+
+  if (opts?.productId) {
+    filtered = filtered.filter(t => t.productId === opts.productId)
+  }
+  if (opts?.type) {
+    filtered = filtered.filter(t => t.type === opts.type)
+  }
+
+  const total = filtered.length
+  const offset = opts?.offset || 0
+  const limit = opts?.limit || 50
+
+  // Already sorted newest-first from unshift
+  const transactions = filtered.slice(offset, offset + limit)
+
+  return { transactions, total }
+}
+
+export function getInventorySummary(): {
+  totalItems: number
+  totalValue: number
+  lowStockCount: number
+  outOfStockCount: number
+} {
+  const activeProducts = allProducts.filter(p => p.active)
+  const totalItems = activeProducts.reduce((sum, p) => sum + p.stock, 0)
+  const totalValue = activeProducts.reduce((sum, p) => sum + (p.price * p.stock), 0)
+  const lowStockCount = activeProducts.filter(p => p.stock > 0 && p.stock < 5).length
+  const outOfStockCount = activeProducts.filter(p => p.stock === 0).length
+
+  return {
+    totalItems,
+    totalValue: Math.round(totalValue * 100) / 100,
+    lowStockCount,
+    outOfStockCount,
+  }
+}
+
 // ==================== DASHBOARD STATS ====================
 export function getDashboardStats() {
   ensureSampleData()
