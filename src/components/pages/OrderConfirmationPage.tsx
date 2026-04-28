@@ -1,16 +1,28 @@
 'use client'
 
-import { useId } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useAppStore } from '@/lib/store'
-import { CheckCircle2, Package, ShoppingBag, MapPin, Phone } from 'lucide-react'
+import { CheckCircle2, Package, ShoppingBag, MapPin, Phone, Copy, Check } from 'lucide-react'
 
 export default function OrderConfirmationPage() {
   const { selectedOrderNumber, navigate } = useAppStore()
-  const reactId = useId()
-  const orderNumber = selectedOrderNumber || `ZD-${reactId.slice(-8).toUpperCase()}`
+  const today = new Date()
+  const fallbackNumber = `ZKS-${[today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('')}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`
+  const orderNumber = selectedOrderNumber || fallbackNumber
+  const [copied, setCopied] = useState(false)
+
+  // Split the order number for nice display: ZKS-YYYYMMDD-NNNN
+  const parts = orderNumber.split('-')
+
+  const copyOrderNumber = () => {
+    navigator.clipboard.writeText(orderNumber).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   return (
     <div className="max-w-lg mx-auto px-4 py-16 text-center">
@@ -42,11 +54,41 @@ export default function OrderConfirmationPage() {
           Thank you for shopping with Zonkomi! Your order has been confirmed and will be delivered to you soon.
         </p>
 
+        {/* Receipt / Order Number Card */}
         {orderNumber && (
-          <Card className="mb-6 border-green-200 bg-green-50/50">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600">Order Number</p>
-              <p className="text-xl font-bold text-gray-900 font-mono">{orderNumber}</p>
+          <Card className="mb-6 border-2 border-dashed border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 overflow-hidden">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-[#FCD116] flex items-center justify-center">
+                  <Package className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-sm font-semibold text-green-800 uppercase tracking-wider">Receipt Number</span>
+              </div>
+
+              {/* Large, scannable order number with visual separation */}
+              <div className="bg-white rounded-xl border border-green-200 p-4 mb-3 shadow-sm">
+                <p className="font-mono text-2xl md:text-3xl font-bold tracking-wider text-gray-900 select-all">
+                  {parts[0]}<span className="text-gray-300">-</span><span className="text-[#C59F00]">{parts[1]}</span><span className="text-gray-300">-</span>{parts[2]}
+                </p>
+              </div>
+
+              {/* Copy button */}
+              <button
+                onClick={copyOrderNumber}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border border-green-200 bg-white hover:bg-green-50 transition-colors text-green-700"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    Copy Receipt Number
+                  </>
+                )}
+              </button>
             </CardContent>
           </Card>
         )}

@@ -16,7 +16,37 @@ import {
   Package,
   CreditCard,
   MapPin,
+  Copy,
+  Check,
 } from 'lucide-react'
+
+// Reusable receipt number badge with copy functionality
+function ReceiptBadge({ orderNumber }: { orderNumber: string }) {
+  const [copied, setCopied] = useState(false)
+  const parts = orderNumber.split('-')
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(orderNumber).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div className="flex items-center gap-2 mt-2">
+      <span className="font-mono text-base font-bold tracking-wide text-gray-800 bg-gray-100 px-3 py-1 rounded-lg">
+        {parts[0]}<span className="text-gray-300">-</span><span className="text-[#C59F00]">{parts[1]}</span><span className="text-gray-300">-</span>{parts[2]}
+      </span>
+      <button
+        onClick={handleCopy}
+        className="p-1.5 rounded-md hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-700"
+        title="Copy receipt number"
+      >
+        {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+      </button>
+    </div>
+  )
+}
 
 function getProductEmoji(images: string | null | undefined, fallback = '📦'): string {
   if (!images) return fallback
@@ -115,7 +145,7 @@ export default function OrderDetailPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Order Details</h1>
-          <p className="text-sm text-gray-500 mt-1 font-mono">{order.orderNumber}</p>
+          <ReceiptBadge orderNumber={order.orderNumber} />
         </div>
         <Badge className={`${getStatusColor(order.status)} text-sm px-3 py-1`}>
           {order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}

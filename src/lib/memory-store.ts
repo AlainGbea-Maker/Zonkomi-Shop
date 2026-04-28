@@ -5,12 +5,36 @@ import { products as seedProducts, categories as seedCategories, type SeedProduc
 import { signToken } from './auth-lite'
 export { signToken }
 
+// ==================== ORDER NUMBER GENERATOR ====================
+// Format: ZKS-YYYYMMDD-NNNN  (e.g. ZKS-20250614-0042)
+// Human-readable, sortable, easy to track & communicate
+let dailyOrderCount = 0
+let orderDateStr = ''
+
+function generateOrderNumber(): string {
+  const now = new Date()
+  const dateStr = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    String(now.getDate()).padStart(2, '0'),
+  ].join('')
+
+  // Reset counter when the date changes
+  if (dateStr !== orderDateStr) {
+    orderDateStr = dateStr
+    dailyOrderCount = 0
+  }
+
+  dailyOrderCount++
+  const seq = String(dailyOrderCount).padStart(4, '0')
+
+  return `ZKS-${dateStr}-${seq}`
+}
+
 // Simple ID generator (no external dependency needed)
 function generateId(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 8)}`
 }
-
-// ==================== PRODUCTS & CATEGORIES (seed-based) ====================
 export const allProducts: SeedProduct[] = [...seedProducts]
 export const allCategories: SeedCategory[] = [...seedCategories]
 
@@ -556,9 +580,15 @@ function ensureSampleOrders(): void {
 
   for (const def of sampleOrderDefs) {
     const createdAt = daysAgo(def.daysOld).toISOString()
-    const timestamp = new Date(createdAt).getTime().toString(36).toUpperCase()
-    const random = Math.random().toString(36).substring(2, 6).toUpperCase()
-    const orderNumber = `ZDO-${timestamp}-${random}`
+    const createdDate = new Date(createdAt)
+    // Generate realistic receipt numbers for sample orders based on their date
+    const dateStr = [
+      createdDate.getFullYear(),
+      String(createdDate.getMonth() + 1).padStart(2, '0'),
+      String(createdDate.getDate()).padStart(2, '0'),
+    ].join('')
+    const sampleSeq = String(Math.floor(Math.random() * 200) + 1).padStart(4, '0')
+    const orderNumber = `ZKS-${dateStr}-${sampleSeq}`
     const id = generateId('order')
 
     const orderItems: StoredOrderItem[] = []
@@ -715,9 +745,7 @@ export function createOrder(data: {
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
   const total = Math.round((subtotal + tax + shipping) * 100) / 100
 
-  const timestamp = Date.now().toString(36).toUpperCase()
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase()
-  const orderNumber = `ZDO-${timestamp}-${random}`
+  const orderNumber = generateOrderNumber()
 
   const now = new Date().toISOString()
   const id = generateId('order')
