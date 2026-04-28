@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -17,7 +17,7 @@ model User {
   city      String?
   state     String?
   zipCode   String?
-  country   String   @default("US")
+  country   String   @default("GH")
   role      String   @default("customer")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -112,7 +112,7 @@ model Order {
   shippingCity    String
   shippingState   String
   shippingZip     String
-  shippingCountry String      @default("US")
+  shippingCountry String      @default("GH")
   shippingPhone   String?
   paymentMethod   String      @default("credit_card")
   paymentStatus   String      @default("pending")
@@ -177,12 +177,12 @@ model Wishlist {
 
 model Spin {
   id        String   @id @default(cuid())
-  sessionId String   // anonymous session identifier
+  sessionId String
   userId    String?
-  prize     String   // the prize name
-  prizeType String   // "percent" | "shipping" | "fixed" | "none"
+  prize     String
+  prizeType String
   prizeValue Float  @default(0)
-  code      String?  // discount code if applicable
+  code      String?
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
 
