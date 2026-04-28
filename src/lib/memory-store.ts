@@ -94,6 +94,82 @@ export function getCategoriesWithCount() {
   return allCategories.map(c => ({ ...c, _count: { products: counts[c.id] || 0 } }))
 }
 
+// ==================== ADMIN PRODUCT CRUD ====================
+export function createProduct(data: {
+  name: string
+  description: string
+  shortDesc?: string
+  price: number
+  originalPrice?: number
+  condition?: string
+  categoryId: string
+  images?: string[]
+  stock?: number
+  featured?: boolean
+  specs?: string
+  brand?: string
+  warranty?: string
+}): SeedProduct {
+  const slug = data.name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+  const id = generateId('prod')
+  const now = new Date().toISOString()
+
+  const product: SeedProduct = {
+    id,
+    name: data.name,
+    slug,
+    description: data.description,
+    shortDesc: data.shortDesc || null,
+    price: data.price,
+    originalPrice: data.originalPrice ?? null,
+    condition: data.condition || 'Good',
+    categoryId: data.categoryId,
+    images: data.images ? JSON.stringify(data.images) : '[]',
+    stock: data.stock ?? 10,
+    rating: 0,
+    reviewCount: 0,
+    featured: data.featured ?? false,
+    specs: data.specs || '{}',
+    brand: data.brand || null,
+    warranty: data.warranty || '90 Days Warranty',
+    active: true,
+  }
+
+  allProducts.push(product)
+  return product
+}
+
+export function updateProduct(id: string, data: Partial<SeedProduct>): SeedProduct | undefined {
+  const idx = allProducts.findIndex(p => p.id === id)
+  if (idx === -1) return undefined
+  Object.assign(allProducts[idx], data)
+  return allProducts[idx]
+}
+
+export function deleteProduct(id: string): boolean {
+  const idx = allProducts.findIndex(p => p.id === id)
+  if (idx === -1) return false
+  allProducts.splice(idx, 1)
+  return true
+}
+
+export function toggleProductActive(id: string): SeedProduct | undefined {
+  const product = allProducts.find(p => p.id === id)
+  if (!product) return undefined
+  product.active = !product.active
+  return product
+}
+
+export function toggleProductFeatured(id: string): SeedProduct | undefined {
+  const product = allProducts.find(p => p.id === id)
+  if (!product) return undefined
+  product.featured = !product.featured
+  return product
+}
+
 // ==================== USERS (in-memory) ====================
 interface StoredUser {
   id: string
@@ -195,7 +271,7 @@ interface StoredOrderItem {
   image: string | null
 }
 
-interface StoredOrder {
+export interface StoredOrder {
   id: string
   orderNumber: string
   userId: string
@@ -220,7 +296,308 @@ interface StoredOrder {
 
 const orders = new Map<string, StoredOrder>()
 
+// ==================== SAMPLE DATA (lazy initialization) ====================
+let sampleDataInitialized = false
+
+function daysAgo(days: number): Date {
+  const d = new Date()
+  d.setDate(d.getDate() - days)
+  d.setHours(8 + Math.floor(Math.random() * 12), Math.floor(Math.random() * 60), 0, 0)
+  return d
+}
+
+function ensureSampleUsers(): void {
+  const sampleUsers: StoredUser[] = [
+    { id: 'user-sample-001', email: 'kojo.mensah@gmail.com', name: 'Kojo Mensah', phone: '+233243456789', address: '24 Oxford Street, Osu', city: 'Accra', state: 'Greater Accra', zipCode: 'GA-234', country: 'GH', role: 'customer', password: 'password123', createdAt: daysAgo(60).toISOString() },
+    { id: 'user-sample-002', email: 'ama.boateng@yahoo.com', name: 'Ama Boateng', phone: '+233205678901', address: '15 Kejetia Market Road', city: 'Kumasi', state: 'Ashanti', zipCode: 'AK-112', country: 'GH', role: 'customer', password: 'password123', createdAt: daysAgo(55).toISOString() },
+    { id: 'user-sample-003', email: 'kwesi.appiah@hotmail.com', name: 'Kwesi Appiah', phone: '+233267890123', address: '8 Harbour Road, Takoradi', city: 'Takoradi', state: 'Western', zipCode: 'WR-345', country: 'GH', role: 'customer', password: 'password123', createdAt: daysAgo(45).toISOString() },
+    { id: 'user-sample-004', email: 'efua.duodu@gmail.com', name: 'Efua Duodu', phone: '+233278901234', address: '42 Tamale Main Street', city: 'Tamale', state: 'Northern', zipCode: 'NR-567', country: 'GH', role: 'customer', password: 'password123', createdAt: daysAgo(35).toISOString() },
+    { id: 'user-sample-005', email: 'yaw.osei@outlook.com', name: 'Yaw Osei', phone: '+233209012345', address: '7 Liberation Road', city: 'Accra', state: 'Greater Accra', zipCode: 'GA-678', country: 'GH', role: 'customer', password: 'password123', createdAt: daysAgo(30).toISOString() },
+    { id: 'user-sample-006', email: 'abi.baah@gmail.com', name: 'Abigail Baah', phone: '+233240123456', address: '3 High Street, Cape Coast', city: 'Cape Coast', state: 'Central', zipCode: 'CC-901', country: 'GH', role: 'customer', password: 'password123', createdAt: daysAgo(25).toISOString() },
+  ]
+
+  for (const u of sampleUsers) {
+    if (!users.has(u.id)) {
+      users.set(u.id, u)
+    }
+  }
+}
+
+function ensureSampleOrders(): void {
+  // Build product lookup for realistic order items
+  function lookupProduct(id: string) {
+    return allProducts.find(p => p.id === id)
+  }
+
+  function parseFirstImage(images: string): string {
+    try {
+      const arr = JSON.parse(images)
+      return Array.isArray(arr) && arr.length > 0 ? arr[0] : '📦'
+    } catch {
+      return '📦'
+    }
+  }
+
+  interface SampleOrderDef {
+    userId: string
+    items: Array<{ productId: string; quantity: number }>
+    status: string
+    paymentStatus: string
+    address: string
+    city: string
+    state: string
+    zip: string
+    phone: string
+    daysOld: number
+    paymentMethod: string
+    notes: string | null
+  }
+
+  const sampleOrderDefs: SampleOrderDef[] = [
+    {
+      userId: 'user-sample-001',
+      items: [{ productId: 'prod-dell-5520', quantity: 1 }, { productId: 'prod-sony-xm5', quantity: 1 }],
+      status: 'delivered',
+      paymentStatus: 'paid',
+      address: '24 Oxford Street, Osu',
+      city: 'Accra',
+      state: 'Greater Accra',
+      zip: 'GA-234',
+      phone: '+233243456789',
+      daysOld: 28,
+      paymentMethod: 'mobile_money',
+      notes: null,
+    },
+    {
+      userId: 'user-sample-002',
+      items: [{ productId: 'prod-iphone-13', quantity: 2 }, { productId: 'prod-airpods-pro', quantity: 2 }],
+      status: 'delivered',
+      paymentStatus: 'paid',
+      address: '15 Kejetia Market Road',
+      city: 'Kumasi',
+      state: 'Ashanti',
+      zip: 'AK-112',
+      phone: '+233205678901',
+      daysOld: 25,
+      paymentMethod: 'mobile_money',
+      notes: 'Please deliver before 5pm',
+    },
+    {
+      userId: 'user-sample-003',
+      items: [{ productId: 'prod-macbook-m1', quantity: 1 }],
+      status: 'shipped',
+      paymentStatus: 'paid',
+      address: '8 Harbour Road, Takoradi',
+      city: 'Takoradi',
+      state: 'Western',
+      zip: 'WR-345',
+      phone: '+233267890123',
+      daysOld: 5,
+      paymentMethod: 'credit_card',
+      notes: null,
+    },
+    {
+      userId: 'user-sample-004',
+      items: [{ productId: 'prod-ps5', quantity: 1 }, { productId: 'prod-xbox', quantity: 1 }],
+      status: 'processing',
+      paymentStatus: 'paid',
+      address: '42 Tamale Main Street',
+      city: 'Tamale',
+      state: 'Northern',
+      zip: 'NR-567',
+      phone: '+233278901234',
+      daysOld: 3,
+      paymentMethod: 'mobile_money',
+      notes: 'Call before delivery',
+    },
+    {
+      userId: 'user-sample-005',
+      items: [{ productId: 'prod-samsung-s22', quantity: 1 }, { productId: 'prod-bose-qc45', quantity: 1 }, { productId: 'prod-galaxy-tab', quantity: 1 }],
+      status: 'confirmed',
+      paymentStatus: 'paid',
+      address: '7 Liberation Road',
+      city: 'Accra',
+      state: 'Greater Accra',
+      zip: 'GA-678',
+      phone: '+233209012345',
+      daysOld: 2,
+      paymentMethod: 'credit_card',
+      notes: null,
+    },
+    {
+      userId: 'user-sample-006',
+      items: [{ productId: 'prod-ipad-air', quantity: 1 }],
+      status: 'pending',
+      paymentStatus: 'pending',
+      address: '3 High Street, Cape Coast',
+      city: 'Cape Coast',
+      state: 'Central',
+      zip: 'CC-901',
+      phone: '+233240123456',
+      daysOld: 1,
+      paymentMethod: 'bank_transfer',
+      notes: null,
+    },
+    {
+      userId: 'user-sample-001',
+      items: [{ productId: 'prod-thinkpad-x1', quantity: 1 }],
+      status: 'delivered',
+      paymentStatus: 'paid',
+      address: '24 Oxford Street, Osu',
+      city: 'Accra',
+      state: 'Greater Accra',
+      zip: 'GA-234',
+      phone: '+233243456789',
+      daysOld: 20,
+      paymentMethod: 'mobile_money',
+      notes: null,
+    },
+    {
+      userId: 'user-sample-003',
+      items: [{ productId: 'prod-lg-27-4k', quantity: 2 }],
+      status: 'cancelled',
+      paymentStatus: 'refunded',
+      address: '8 Harbour Road, Takoradi',
+      city: 'Takoradi',
+      state: 'Western',
+      zip: 'WR-345',
+      phone: '+233267890123',
+      daysOld: 18,
+      paymentMethod: 'credit_card',
+      notes: 'Customer changed mind',
+    },
+    {
+      userId: 'user-sample-005',
+      items: [{ productId: 'prod-hp-840', quantity: 1 }, { productId: 'prod-dell-u2722', quantity: 1 }],
+      status: 'delivered',
+      paymentStatus: 'paid',
+      address: '7 Liberation Road',
+      city: 'Accra',
+      state: 'Greater Accra',
+      zip: 'GA-678',
+      phone: '+233209012345',
+      daysOld: 15,
+      paymentMethod: 'mobile_money',
+      notes: null,
+    },
+    {
+      userId: 'user-sample-002',
+      items: [{ productId: 'prod-mac-mini', quantity: 1 }, { productId: 'prod-switch', quantity: 1 }],
+      status: 'shipped',
+      paymentStatus: 'paid',
+      address: '15 Kejetia Market Road',
+      city: 'Kumasi',
+      state: 'Ashanti',
+      zip: 'AK-112',
+      phone: '+233205678901',
+      daysOld: 4,
+      paymentMethod: 'mobile_money',
+      notes: null,
+    },
+    {
+      userId: 'user-sample-004',
+      items: [{ productId: 'prod-canon-r6', quantity: 1 }],
+      status: 'pending',
+      paymentStatus: 'pending',
+      address: '42 Tamale Main Street',
+      city: 'Tamale',
+      state: 'Northern',
+      zip: 'NR-567',
+      phone: '+233278901234',
+      daysOld: 0,
+      paymentMethod: 'bank_transfer',
+      notes: 'Awaiting payment confirmation',
+    },
+    {
+      userId: 'user-sample-006',
+      items: [{ productId: 'prod-pixel-7', quantity: 1 }, { productId: 'prod-airpods-pro', quantity: 1 }],
+      status: 'confirmed',
+      paymentStatus: 'paid',
+      address: '3 High Street, Cape Coast',
+      city: 'Cape Coast',
+      state: 'Central',
+      zip: 'CC-901',
+      phone: '+233240123456',
+      daysOld: 1,
+      paymentMethod: 'mobile_money',
+      notes: null,
+    },
+  ]
+
+  const TAX_RATE = 0.0833
+  const FREE_SHIPPING_THRESHOLD = 50
+  const SHIPPING_COST = 9.99
+
+  for (const def of sampleOrderDefs) {
+    const createdAt = daysAgo(def.daysOld).toISOString()
+    const timestamp = new Date(createdAt).getTime().toString(36).toUpperCase()
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase()
+    const orderNumber = `ZDO-${timestamp}-${random}`
+    const id = generateId('order')
+
+    const orderItems: StoredOrderItem[] = []
+    let subtotal = 0
+
+    for (const item of def.items) {
+      const product = lookupProduct(item.productId)
+      const name = product?.name || 'Unknown Product'
+      const price = product?.price || 0
+      const image = product ? parseFirstImage(product.images) : '📦'
+
+      orderItems.push({
+        id: generateId('oi'),
+        orderId: id,
+        productId: item.productId,
+        quantity: item.quantity,
+        price,
+        name,
+        image,
+      })
+      subtotal += price * item.quantity
+    }
+
+    const tax = Math.round(subtotal * TAX_RATE * 100) / 100
+    const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
+    const total = Math.round((subtotal + tax + shipping) * 100) / 100
+
+    const order: StoredOrder = {
+      id,
+      orderNumber,
+      userId: def.userId,
+      status: def.status,
+      subtotal,
+      shipping,
+      tax,
+      total,
+      shippingAddress: def.address,
+      shippingCity: def.city,
+      shippingState: def.state,
+      shippingZip: def.zip,
+      shippingCountry: 'GH',
+      shippingPhone: def.phone,
+      paymentMethod: def.paymentMethod,
+      paymentStatus: def.paymentStatus,
+      notes: def.notes,
+      createdAt,
+      updatedAt: createdAt,
+      orderItems,
+    }
+
+    orders.set(id, order)
+  }
+}
+
+function ensureSampleData(): void {
+  if (sampleDataInitialized) return
+  sampleDataInitialized = true
+  ensureSampleUsers()
+  ensureSampleOrders()
+}
+
+// ==================== ORDER FUNCTIONS ====================
+
 export function getOrdersByUser(userId: string): StoredOrder[] {
+  ensureSampleData()
   const result: StoredOrder[] = []
   for (const o of orders.values()) {
     if (o.userId === userId) result.push(o)
@@ -230,6 +607,7 @@ export function getOrdersByUser(userId: string): StoredOrder[] {
 }
 
 export function getOrderByNumber(orderNumber: string): StoredOrder | undefined {
+  ensureSampleData()
   for (const o of orders.values()) {
     if (o.orderNumber === orderNumber) return o
   }
@@ -237,6 +615,7 @@ export function getOrderByNumber(orderNumber: string): StoredOrder | undefined {
 }
 
 export function getAllOrders(opts?: { status?: string; paymentStatus?: string; search?: string; page?: number; limit?: number; sort?: string; order?: string }) {
+  ensureSampleData()
   let filtered = Array.from(orders.values())
 
   if (opts?.status) filtered = filtered.filter(o => o.status === opts.status)
@@ -280,6 +659,7 @@ export function createOrder(data: {
   paymentMethod?: string
   notes?: string | null
 }): StoredOrder {
+  ensureSampleData()
   const TAX_RATE = 0.0833
   const FREE_SHIPPING_THRESHOLD = 50
   const SHIPPING_COST = 9.99
@@ -456,6 +836,8 @@ export function deleteReview(reviewId: string, userId: string): boolean {
 
 // ==================== DASHBOARD STATS ====================
 export function getDashboardStats() {
+  ensureSampleData()
+
   const allOrders = Array.from(orders.values())
   const paidOrders = allOrders.filter(o => o.paymentStatus === 'paid')
   const totalRevenue = paidOrders.reduce((s, o) => s + o.total, 0)
@@ -469,6 +851,7 @@ export function getDashboardStats() {
     ordersByStatus[o.status] = (ordersByStatus[o.status] || 0) + 1
   }
 
+  // Top selling products by quantity sold
   const productSales: Record<string, number> = {}
   for (const o of allOrders) {
     for (const oi of o.orderItems) {
@@ -488,6 +871,52 @@ export function getDashboardStats() {
       }
     })
 
+  // Low stock products (stock < 5)
+  const lowStockProducts = allProducts
+    .filter(p => p.active && p.stock < 5)
+    .sort((a, b) => a.stock - b.stock)
+    .map(p => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      stock: p.stock,
+      price: p.price,
+    }))
+
+  // Top selling products (full version for dashboard)
+  const topSellingProducts = topProducts.map(tp => {
+    const product = allProducts.find(p => p.id === tp.productId)
+    return {
+      id: tp.productId,
+      name: tp.name,
+      image: tp.image,
+      totalSold: tp.totalSold,
+      revenue: product ? Math.round(tp.totalSold * product.price * 100) / 100 : 0,
+    }
+  })
+
+  // Revenue by month (last 3 months)
+  const now = new Date()
+  const revenueByMonth: Array<{ month: string; revenue: number; orders: number }> = []
+  for (let i = 2; i >= 0; i--) {
+    const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const year = monthDate.getFullYear()
+    const month = monthDate.getMonth()
+    const monthStr = monthDate.toLocaleString('en-US', { month: 'short', year: 'numeric' })
+
+    const monthOrders = paidOrders.filter(o => {
+      const d = new Date(o.createdAt)
+      return d.getFullYear() === year && d.getMonth() === month
+    })
+    const monthRevenue = monthOrders.reduce((s, o) => s + o.total, 0)
+
+    revenueByMonth.push({
+      month: monthStr,
+      revenue: Math.round(monthRevenue * 100) / 100,
+      orders: monthOrders.length,
+    })
+  }
+
   return {
     stats: {
       totalProducts: allProducts.filter(p => p.active).length,
@@ -499,6 +928,8 @@ export function getDashboardStats() {
     recentOrders,
     topProducts,
     ordersByStatus: Object.entries(ordersByStatus).map(([status, count]) => ({ status, count })),
-    revenueByMonth: [],
+    revenueByMonth,
+    lowStockProducts,
+    topSellingProducts,
   }
 }

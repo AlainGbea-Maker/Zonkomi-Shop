@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server'
 import { withAdmin } from '@/lib/middleware'
-import { allProducts, allCategories } from '@/lib/memory-store'
-import { getProductsWithCategory } from '@/lib/seed-data'
+import {
+  allProducts,
+  allCategories,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+} from '@/lib/memory-store'
 
 // GET /api/admin/products - List all products (admin)
 export async function GET(request: Request) {
@@ -62,13 +67,39 @@ export async function GET(request: Request) {
   })
 }
 
-// POST /api/admin/products - Create product (echo back for Vercel)
+// POST /api/admin/products - Create product
 export async function POST(request: Request) {
   return withAdmin(request as any, async (req) => {
     try {
       const body = await req.json()
-      // In-memory: just return success (data won't persist across serverless invocations)
-      return NextResponse.json({ message: 'Product created (in-memory only on Vercel)', product: body }, { status: 201 })
+
+      if (!body.name) {
+        return NextResponse.json({ error: 'Product name is required' }, { status: 400 })
+      }
+
+      const specs = typeof body.specs === 'string'
+        ? body.specs
+        : body.specs
+          ? JSON.stringify(body.specs)
+          : '{}'
+
+      const product = createProduct({
+        name: body.name,
+        description: body.description || '',
+        shortDesc: body.shortDesc || null,
+        price: Number(body.price) || 0,
+        originalPrice: body.originalPrice != null ? Number(body.originalPrice) : undefined,
+        condition: body.condition || 'Good',
+        categoryId: body.categoryId || '',
+        images: typeof body.images === 'string' ? JSON.parse(body.images) : Array.isArray(body.images) ? body.images : [],
+        stock: Number(body.stock) ?? 0,
+        featured: body.featured ?? false,
+        specs,
+        brand: body.brand || null,
+        warranty: body.warranty || '90 Days Warranty',
+      })
+
+      return NextResponse.json({ product }, { status: 201 })
     } catch (error) {
       console.error('Error creating product:', error)
       return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
@@ -78,14 +109,86 @@ export async function POST(request: Request) {
 
 // PUT /api/admin/products - Update product
 export async function PUT(request: Request) {
-  return withAdmin(request as any, async () => {
-    return NextResponse.json({ message: 'Product updated (in-memory only on Vercel)' })
+  return withAdmin(request as any, async (req) => {
+    try {
+      const body = await req.json()
+
+      if (!body.id) {
+        return NextResponse.json({ error: 'Product ID is required' }, { status: 400 })
+      }
+
+      // Prepare update payload — only include provided fields
+      const updates: any = {}
+
+      if (body.name !== undefined) {
+        updates.name = body.name
+        updates.slug = body.slug || body.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '')
+      }
+      if (body.slug !== undefined) updates.slug = body.slug
+      if (body.description !== undefined) updates.description = body.description
+      if (body.shortDesc !== undefined) updates.shortDesc = body.shortDesc
+      if (body.price !== undefined) updates.price = Number(body.price)
+      if (body.originalPrice !== undefined) updates.originalPrice = body.originalPrice != null ? Number(body.originalPrice) : null
+      if (body.condition !== undefined) updates.condition = body.condition
+      if (body.categoryId !== undefined) updates.categoryId = body.categoryId
+      if (body.images !== undefined) {
+        updates.images = typeof body.images === 'string'
+          ? body.images
+          : Array.isArray(body.images)
+            ? JSON.stringify(body.images)
+            : body.images
+      }
+      if (body.stock !== undefined) updates.stock = Number(body.stock)
+      if (body.rating !== undefined) updates.rating = body.rating
+      if (body.reviewCount !== undefined) updates.reviewCount = body.reviewCount
+      if (body.featured !== undefined) updates.featured = body.featured
+      if (body.active !== undefined) updates.active = body.active
+      if (body.specs !== undefined) {
+        updates.specs = typeof body.specs === 'string'
+          ? body.specs
+          : JSON.stringify(body.specs)
+      }
+      if (body.brand !== undefined) updates.brand = body.brand
+      if (body.warranty !== undefined) updates.warranty = body.warranty
+
+      const updated = updateProduct(body.id, updates)
+
+      if (!updated) {
+        return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+      }
+
+      return NextResponse.json({ product: updated })
+    } catch (error) {
+      console.error('Error updating product:', error)
+      return NextResponse.json({ error: 'Failed to update product' }, { status: 500 })
+    }
   })
 }
 
 // DELETE /api/admin/products - Delete product
 export async function DELETE(request: Request) {
-  return withAdmin(request as any, async () => {
-    return NextResponse.json({ message: 'Product deleted (in-memory only on Vercel)' })
+  return withAdmin(request as any, async (req) => {
+    try {
+      const { searchParams } = new URL(req.url)
+      const id = searchParams.get('id')
+
+      if (!id) {
+        return NextResponse.json({ error: 'Product ID is required' }, { status: 400 })
+      }
+
+      const success = deleteProduct(id)
+
+      if (!success) {
+        return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+      }
+
+      return NextResponse.json({ message: 'Product deleted', success: true })
+    } catch (error) {
+      console.error('Error deleting product:', error)
+      return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 })
+    }
   })
 }
