@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { useAppStore, useUserStore } from '@/lib/store'
 import { Shield } from 'lucide-react'
-import { ArrowLeft, Mail, User, Loader2, Zap, Phone } from 'lucide-react'
+import { ArrowLeft, Mail, User, Loader2, Zap, Phone, Lock } from 'lucide-react'
 
 export default function LoginPage() {
   const { navigate } = useAppStore()
@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
 
   const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
   const [registerName, setRegisterName] = useState('')
   const [registerEmail, setRegisterEmail] = useState('')
   const [registerPhone, setRegisterPhone] = useState('')
@@ -29,13 +30,17 @@ export default function LoginPage() {
       setError('Please enter your email')
       return
     }
+    if (!loginPassword.trim()) {
+      setError('Please enter your password')
+      return
+    }
     setLoading(true)
     setError('')
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail }),
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
       })
       if (!res.ok) throw new Error()
       const data = await res.json()
@@ -44,7 +49,7 @@ export default function LoginPage() {
       if (userData?.role === 'admin') navigate('admin')
       else navigate('home')
     } catch {
-      setError('Login failed. Please try again.')
+      setError('Invalid email or password. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -178,6 +183,21 @@ export default function LoginPage() {
                         value={loginEmail}
                         onChange={(e) => setLoginEmail(e.target.value)}
                         placeholder="you@example.com"
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="login-password">Password</Label>
+                    <div className="relative mt-1">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        id="login-password"
+                        type="password"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        placeholder="Enter your password"
                         className="pl-10"
                       />
                     </div>

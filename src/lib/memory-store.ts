@@ -197,13 +197,36 @@ export function ensureDemoUser(): StoredUser {
       email: 'demo@zonkomishop.com',
       name: 'Kwame Asante',
       phone: '+233241234567',
-      address: '12 Ring Road Central',
+      address: '12 Ring Road Central, Osu',
       city: 'Accra',
       state: 'Greater Accra',
       zipCode: 'GA-123',
       country: 'GH',
       role: 'admin',
       password: 'demo123', // plain text ok for in-memory demo
+      createdAt: new Date().toISOString(),
+    }
+    users.set(user.id, user)
+  }
+  return user
+}
+
+// Lazily ensure admin user exists for email/password login
+export function ensureAdminUser(): StoredUser {
+  let user = users.get('admin-user-001')
+  if (!user) {
+    user = {
+      id: 'admin-user-001',
+      email: 'admin@zonkomishop.com',
+      name: 'Admin User',
+      phone: '+233201234567',
+      address: 'Admin HQ, Osu',
+      city: 'Accra',
+      state: 'Greater Accra',
+      zipCode: 'GA-001',
+      country: 'GH',
+      role: 'admin',
+      password: 'admin123', // plain text ok for in-memory demo
       createdAt: new Date().toISOString(),
     }
     users.set(user.id, user)
@@ -250,6 +273,9 @@ export function updateUser(id: string, data: Partial<Pick<StoredUser, 'name' | '
 }
 
 export function authUser(email: string, password?: string): { user: StoredUser; token: string } | null {
+  // Ensure admin user exists so it can be logged into
+  ensureAdminUser()
+
   const user = findUserByEmail(email)
   if (!user) return null
 
