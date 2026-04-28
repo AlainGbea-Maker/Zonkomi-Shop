@@ -1,26 +1,11 @@
 import { NextResponse } from 'next/server'
-import { findUserByEmail, hashPassword, signToken, createUser } from '@/lib/memory-store'
+import { ensureDemoUser, signToken } from '@/lib/memory-store'
 
 const DEMO_EMAIL = 'demo@zonkomishop.com'
 
 export async function GET() {
   try {
-    let user = findUserByEmail(DEMO_EMAIL)
-
-    if (!user) {
-      // Create demo user in memory
-      user = createUser({
-        email: DEMO_EMAIL,
-        name: 'Kwame Asante',
-        phone: '+233241234567',
-        address: '12 Ring Road Central',
-        city: 'Accra',
-        state: 'Greater Accra',
-        zipCode: 'GA-123',
-        country: 'GH',
-        password: 'demo123',
-      })
-    }
+    const user = ensureDemoUser()
 
     const token = signToken({ userId: user.id, email: user.email, role: user.role })
 
@@ -30,6 +15,6 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error during demo login:', error)
-    return NextResponse.json({ error: 'Demo login failed' }, { status: 500 })
+    return NextResponse.json({ error: 'Demo login failed', details: String(error) }, { status: 500 })
   }
 }

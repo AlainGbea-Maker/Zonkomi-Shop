@@ -2,8 +2,13 @@
 // Data persists only during the serverless function's lifetime
 
 import { products as seedProducts, categories as seedCategories, type SeedProduct, type SeedCategory } from './seed-data'
-import { hashPassword, signToken, verifyToken, comparePassword } from './auth'
-import { v4 as uuidv4 } from 'uuid'
+import { signToken } from './auth-lite'
+export { signToken }
+
+// Simple ID generator (no external dependency needed)
+function generateId(prefix: string): string {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 8)}`
+}
 
 // ==================== PRODUCTS & CATEGORIES (seed-based) ====================
 export const allProducts: SeedProduct[] = [...seedProducts]
@@ -28,7 +33,6 @@ export function getProductsFiltered(opts: {
 }) {
   let filtered = allProducts.filter(p => p.active)
 
-  // Category filter
   if (opts.categoryId) {
     filtered = filtered.filter(p => p.categoryId === opts.categoryId)
   } else if (opts.categorySlug) {
@@ -36,7 +40,6 @@ export function getProductsFiltered(opts: {
     if (cat) filtered = filtered.filter(p => p.categoryId === cat.id)
   }
 
-  // Search filter
   if (opts.search) {
     const q = opts.search.toLowerCase()
     filtered = filtered.filter(p =>
@@ -44,12 +47,10 @@ export function getProductsFiltered(opts: {
     )
   }
 
-  // Featured filter
   if (opts.featured === 'true') {
     filtered = filtered.filter(p => p.featured)
   }
 
-  // Price filter
   if (opts.minPrice && opts.minPrice > 0) {
     filtered = filtered.filter(p => p.price >= opts.minPrice!)
   }
@@ -57,7 +58,6 @@ export function getProductsFiltered(opts: {
     filtered = filtered.filter(p => p.price <= opts.maxPrice!)
   }
 
-  // Sort
   switch (opts.sort) {
     case 'price-asc': filtered.sort((a, b) => a.price - b.price); break
     case 'price-desc': filtered.sort((a, b) => b.price - a.price); break
@@ -112,22 +112,28 @@ interface StoredUser {
 
 const users = new Map<string, StoredUser>()
 
-// Pre-create demo user
-const demoPassword = hashPassword('demo123')
-users.set('demo-user-001', {
-  id: 'demo-user-001',
-  email: 'demo@zonkomishop.com',
-  name: 'Kwame Asante',
-  phone: '+233241234567',
-  address: '12 Ring Road Central',
-  city: 'Accra',
-  state: 'Greater Accra',
-  zipCode: 'GA-123',
-  country: 'GH',
-  role: 'customer',
-  password: demoPassword,
-  createdAt: new Date().toISOString(),
-})
+// Lazily ensure demo user exists (avoid calling hashPassword at module init)
+export function ensureDemoUser(): StoredUser {
+  let user = users.get('demo-user-001')
+  if (!user) {
+    user = {
+      id: 'demo-user-001',
+      email: 'demo@zonkomishop.com',
+      name: 'Kwame Asante',
+      phone: '+233241234567',
+      address: '12 Ring Road Central',
+      city: 'Accra',
+      state: 'Greater Accra',
+      zipCode: 'GA-123',
+      country: 'GH',
+      role: 'customer',
+      password: 'demo123', // plain text ok for in-memory demo
+      createdAt: new Date().toISOString(),
+    }
+    users.set(user.id, user)
+  }
+  return user
+}
 
 export function findUserByEmail(email: string): StoredUser | undefined {
   for (const u of users.values()) {
@@ -137,7 +143,7 @@ export function findUserByEmail(email: string): StoredUser | undefined {
 }
 
 export function createUser(data: { email: string; name: string; phone?: string; address?: string; city?: string; state?: string; zipCode?: string; country?: string; password: string }): StoredUser {
-  const id = `user-${uuidv4()}`
+  const id = generateId('user')
   const user: StoredUser = {
     id,
     email: data.email,
@@ -149,7 +155,7 @@ export function createUser(data: { email: string; name: string; phone?: string; 
     zipCode: data.zipCode,
     country: data.country || 'US',
     role: 'customer',
-    password: hashPassword(data.password),
+    password: data.password, // plain text ok for in-memory demo
     createdAt: new Date().toISOString(),
   }
   users.set(id, user)
@@ -171,9 +177,8 @@ export function authUser(email: string, password?: string): { user: StoredUser; 
   const user = findUserByEmail(email)
   if (!user) return null
 
-  if (password && user.password) {
-    if (!comparePassword(password, user.password)) return null
-  }
+  // Simple password check for in-memory demo
+  if (password && user.password && user.password !== password) return null
 
   const token = signToken({ userId: user.id, email: user.email, role: user.role })
   return { user, token }
@@ -222,10 +227,6 @@ export function getOrdersByUser(userId: string): StoredOrder[] {
   }
   result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   return result
-}
-
-export function getOrderById(id: string): StoredOrder | undefined {
-  return orders.get(id)
 }
 
 export function getOrderByNumber(orderNumber: string): StoredOrder | undefined {
@@ -293,7 +294,7 @@ export function createOrder(data: {
     const image = item.image || (product?.images ? JSON.parse(product.images)[0] : null)
 
     orderItems.push({
-      id: `oi-${uuidv4()}`,
+      id: generateId('oi'),
       orderId: '',
       productId: item.productId,
       quantity: item.quantity,
@@ -313,7 +314,7 @@ export function createOrder(data: {
   const orderNumber = `ZDO-${timestamp}-${random}`
 
   const now = new Date().toISOString()
-  const id = `order-${uuidv4()}`
+  const id = generateId('order')
 
   const order: StoredOrder = {
     id,
@@ -377,7 +378,7 @@ export function getSpinsForSession(sessionId: string, withinHours = 24): SpinRec
 
 export function addSpin(data: { sessionId: string; userId?: string; prize: string; prizeType: string; prizeValue: number; code: string | null }): SpinRecord {
   const record: SpinRecord = {
-    id: `spin-${uuidv4()}`,
+    id: generateId('spin'),
     sessionId: data.sessionId,
     userId: data.userId || null,
     prize: data.prize,
@@ -432,7 +433,7 @@ export function createReview(data: { productId: string; userId: string; rating: 
 
   const user = getUserById(data.userId)
   const review: StoredReview = {
-    id: `review-${uuidv4()}`,
+    id: generateId('review'),
     productId: data.productId,
     userId: data.userId,
     rating: data.rating,
@@ -468,7 +469,6 @@ export function getDashboardStats() {
     ordersByStatus[o.status] = (ordersByStatus[o.status] || 0) + 1
   }
 
-  // Count product sales from order items
   const productSales: Record<string, number> = {}
   for (const o of allOrders) {
     for (const oi of o.orderItems) {

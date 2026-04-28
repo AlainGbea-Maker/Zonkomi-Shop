@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { authUser, findUserByEmail, hashPassword, signToken } from '@/lib/memory-store'
+import { authUser } from '@/lib/memory-store'
 
 export async function POST(request: Request) {
   try {
@@ -10,7 +10,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
     }
 
-    // Try in-memory store
     const result = authUser(email, password)
     if (result) {
       return NextResponse.json({

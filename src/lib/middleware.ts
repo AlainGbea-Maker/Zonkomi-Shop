@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken, type JwtPayload } from '@/lib/auth'
+import { verifyToken, type JwtPayload } from '@/lib/auth-lite'
 
 export interface AuthRequest extends NextRequest {
   user?: JwtPayload

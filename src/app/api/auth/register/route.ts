@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createUser, findUserByEmail, hashPassword, signToken } from '@/lib/memory-store'
+import { createUser, findUserByEmail, signToken } from '@/lib/memory-store'
 
 export async function POST(request: Request) {
   try {
