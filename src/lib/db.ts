@@ -1,11 +1,6 @@
-import { PrismaClient } from '@prisma/client'
+// Database compatibility layer
+// This module is kept for import compatibility but the actual data
+// is served from in-memory seed data (memory-store.ts)
+// This allows the app to work on Vercel without a database.
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
-
-export const db =
-  globalForPrisma.prisma ??
-  new PrismaClient()
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
+export const db = {} as any

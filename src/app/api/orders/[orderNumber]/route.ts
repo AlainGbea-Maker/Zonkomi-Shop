@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { getOrderByNumber } from '@/lib/memory-store'
 
 export async function GET(
   request: Request,
@@ -7,11 +7,7 @@ export async function GET(
 ) {
   try {
     const { orderNumber } = await params
-
-    const order = await db.order.findUnique({
-      where: { orderNumber },
-      include: { orderItems: true },
-    })
+    const order = getOrderByNumber(orderNumber)
 
     if (!order) {
       return NextResponse.json(

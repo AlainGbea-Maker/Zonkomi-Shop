@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { getProductDetail } from '@/lib/memory-store'
 
 export async function GET(
   request: Request,
@@ -7,25 +7,7 @@ export async function GET(
 ) {
   try {
     const { slug } = await params
-
-    // Support both slug and id lookups
-    const product = await db.product.findFirst({
-      where: {
-        OR: [
-          { slug },
-          { id: slug },
-        ],
-      },
-      include: {
-        category: true,
-        reviews: {
-          include: {
-            user: { select: { name: true } },
-          },
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-    })
+    const product = getProductDetail(slug)
 
     if (!product) {
       return NextResponse.json(

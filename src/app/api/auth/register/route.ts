@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { hashPassword, signToken } from '@/lib/auth'
+import { createUser, findUserByEmail, hashPassword, signToken } from '@/lib/memory-store'
 
 export async function POST(request: Request) {
   try {
@@ -15,16 +14,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 })
     }
 
-    const existingUser = await db.user.findUnique({ where: { email } })
+    const existingUser = findUserByEmail(email)
     if (existingUser) {
       return NextResponse.json({ error: 'A user with this email already exists' }, { status: 409 })
     }
 
-    const hashedPassword = hashPassword(password)
-
-    const user = await db.user.create({
-      data: { email, name, phone, address, city, state, zipCode, country, password: hashedPassword },
-    })
+    const user = createUser({ email, name, phone, address, city, state, zipCode, country, password })
 
     const token = signToken({ userId: user.id, email: user.email, role: user.role })
 

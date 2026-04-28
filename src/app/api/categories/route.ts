@@ -1,18 +1,9 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { getCategoriesWithCount } from '@/lib/memory-store'
 
 export async function GET() {
   try {
-    const categories = await db.category.findMany({
-      where: { active: true },
-      orderBy: { sortOrder: 'asc' },
-      include: {
-        _count: {
-          select: { products: true },
-        },
-      },
-    })
-
+    const categories = getCategoriesWithCount()
     return NextResponse.json(categories)
   } catch (error) {
     console.error('Error fetching categories:', error)

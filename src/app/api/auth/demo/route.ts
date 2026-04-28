@@ -1,28 +1,24 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { hashPassword, signToken } from '@/lib/auth'
+import { findUserByEmail, hashPassword, signToken, createUser } from '@/lib/memory-store'
 
 const DEMO_EMAIL = 'demo@zonkomishop.com'
 
 export async function GET() {
   try {
-    let user = await db.user.findUnique({ where: { email: DEMO_EMAIL } })
+    let user = findUserByEmail(DEMO_EMAIL)
 
     if (!user) {
-      const hashedPassword = hashPassword('demo123')
-      user = await db.user.create({
-        data: {
-          email: DEMO_EMAIL,
-          name: 'Kwame Asante',
-          phone: '+233241234567',
-          address: '12 Ring Road Central',
-          city: 'Accra',
-          state: 'Greater Accra',
-          zipCode: 'GA-123',
-          country: 'GH',
-          password: hashedPassword,
-          role: 'customer',
-        },
+      // Create demo user in memory
+      user = createUser({
+        email: DEMO_EMAIL,
+        name: 'Kwame Asante',
+        phone: '+233241234567',
+        address: '12 Ring Road Central',
+        city: 'Accra',
+        state: 'Greater Accra',
+        zipCode: 'GA-123',
+        country: 'GH',
+        password: 'demo123',
       })
     }
 

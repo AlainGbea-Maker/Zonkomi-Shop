@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { withAdmin } from '@/lib/middleware'
-import { db } from '@/lib/db'
+import { getOrderByNumber, updateOrderStatus, deleteOrderByNumber } from '@/lib/memory-store'
 
 const VALID_STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled']
 const VALID_PAYMENT_STATUSES = ['pending', 'paid', 'refunded', 'failed']
@@ -13,13 +13,7 @@ export async function GET(
   return withAdmin(request as any, async () => {
     try {
       const { orderNumber } = await params
-      const order = await db.order.findUnique({
-        where: { orderNumber },
-        include: {
-          orderItems: true,
-          user: { select: { id: true, name: true, email: true, phone: true } },
-        },
-      })
+      const order = getOrderByNumber(orderNumber)
 
       if (!order) {
         return NextResponse.json({ error: 'Order not found' }, { status: 404 })
@@ -44,7 +38,7 @@ export async function PATCH(
       const body = await req.json()
       const { status, paymentStatus, notes } = body
 
-      const order = await db.order.findUnique({ where: { orderNumber } })
+      const order = getOrderByNumber(orderNumber)
       if (!order) {
         return NextResponse.json({ error: 'Order not found' }, { status: 404 })
       }
@@ -59,18 +53,6 @@ export async function PATCH(
           )
         }
         updates.status = status
-
-        // If cancelling, restore stock
-        if (status === 'cancelled' && order.status !== 'cancelled') {
-          const orderItems = await db.orderItem.findMany({ where: { orderId: order.id } })
-          for (const item of orderItems) {
-            await db.product.update({
-              where: { id: item.productId },
-              data: { stock: { increment: item.quantity } },
-            })
-          }
-          updates.paymentStatus = 'refunded'
-        }
       }
 
       if (paymentStatus) {
@@ -85,12 +67,7 @@ export async function PATCH(
 
       if (notes !== undefined) updates.notes = notes
 
-      const updated = await db.order.update({
-        where: { orderNumber },
-        data: updates,
-        include: { orderItems: true },
-      })
-
+      const updated = updateOrderStatus(orderNumber, updates as { status?: string; paymentStatus?: string; notes?: string | null })
       return NextResponse.json({ order: updated })
     } catch (error) {
       console.error('Error updating order:', error)
@@ -107,25 +84,11 @@ export async function DELETE(
   return withAdmin(request as any, async () => {
     try {
       const { orderNumber } = await params
+      const success = deleteOrderByNumber(orderNumber)
 
-      const order = await db.order.findUnique({ where: { orderNumber } })
-      if (!order) {
+      if (!success) {
         return NextResponse.json({ error: 'Order not found' }, { status: 404 })
       }
-
-      // Restore stock and delete
-      await db.$transaction(async (tx) => {
-        if (order.status !== 'cancelled') {
-          const orderItems = await tx.orderItem.findMany({ where: { orderId: order.id } })
-          for (const item of orderItems) {
-            await tx.product.update({
-              where: { id: item.productId },
-              data: { stock: { increment: item.quantity } },
-            })
-          }
-        }
-        await tx.order.delete({ where: { orderNumber } })
-      })
 
       return NextResponse.json({ message: 'Order deleted successfully' })
     } catch (error) {

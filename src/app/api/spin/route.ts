@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { getSpinsForSession, addSpin } from '@/lib/memory-store'
 
 // Prize wheel configuration - balanced so small wins dominate
 const PRIZES = [
@@ -41,33 +41,21 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Session ID required' }, { status: 400 })
     }
 
-    // Check spins in the last 24 hours for this session
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
-    const recentSpins = await db.spin.count({
-      where: {
-        sessionId,
-        createdAt: { gte: oneDayAgo },
-      },
-    })
+    const recentSpins = getSpinsForSession(sessionId)
+    const canSpin = recentSpins.length === 0
 
-    const canSpin = recentSpins === 0
-
-    // Get the last won prize if any
-    const lastSpin = await db.spin.findFirst({
-      where: { sessionId },
-      orderBy: { createdAt: 'desc' },
-    })
+    const lastPrize = recentSpins.length > 0 && !recentSpins[0].used ? {
+      name: recentSpins[0].prize,
+      type: recentSpins[0].prizeType,
+      value: recentSpins[0].prizeValue,
+      code: recentSpins[0].code,
+    } : null
 
     return NextResponse.json({
       canSpin,
-      spinsToday: recentSpins,
+      spinsToday: recentSpins.length,
       maxSpinsPerDay: 1,
-      lastPrize: lastSpin && !lastSpin.used ? {
-        name: lastSpin.prize,
-        type: lastSpin.prizeType,
-        value: lastSpin.prizeValue,
-        code: lastSpin.code,
-      } : null,
+      lastPrize,
     })
   } catch (error) {
     console.error('Error checking spin:', error)
@@ -85,36 +73,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Session ID required' }, { status: 400 })
     }
 
-    // Rate limit: 1 spin per 24h per session
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
-    const recentSpins = await db.spin.count({
-      where: {
-        sessionId,
-        createdAt: { gte: oneDayAgo },
-      },
-    })
+    const recentSpins = getSpinsForSession(sessionId)
 
-    if (recentSpins > 0) {
+    if (recentSpins.length > 0) {
       return NextResponse.json(
-        { error: 'You already spun today! Come back tomorrow.', canSpin: false, spinsToday: recentSpins },
+        { error: 'You already spun today! Come back tomorrow.', canSpin: false, spinsToday: recentSpins.length },
         { status: 429 }
       )
     }
 
-    // Pick a prize
     const prize = pickPrize()
     const code = prize.type === 'none' ? null : generateCode()
 
-    // Save to database
-    await db.spin.create({
-      data: {
-        sessionId,
-        userId: body.userId || null,
-        prize: prize.name,
-        prizeType: prize.type,
-        prizeValue: prize.value,
-        code,
-      },
+    addSpin({
+      sessionId,
+      userId: body.userId || null,
+      prize: prize.name,
+      prizeType: prize.type,
+      prizeValue: prize.value,
+      code,
     })
 
     return NextResponse.json({

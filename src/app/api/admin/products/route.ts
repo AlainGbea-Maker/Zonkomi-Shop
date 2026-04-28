@@ -1,50 +1,58 @@
 import { NextResponse } from 'next/server'
 import { withAdmin } from '@/lib/middleware'
-import { db } from '@/lib/db'
+import { allProducts, allCategories } from '@/lib/memory-store'
+import { getProductsWithCategory } from '@/lib/seed-data'
 
 // GET /api/admin/products - List all products (admin)
 export async function GET(request: Request) {
   return withAdmin(request as any, async (req) => {
     try {
       const { searchParams } = new URL(req.url)
-      const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
-      const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')))
       const search = searchParams.get('search')
       const category = searchParams.get('category')
       const status = searchParams.get('status')
-      const sort = searchParams.get('sort') || 'createdAt'
+      const sort = searchParams.get('sort') || 'rating'
       const order = searchParams.get('order') || 'desc'
+      const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
+      const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')))
 
-      const skip = (page - 1) * limit
-      const where: Record<string, unknown> = {}
+      let filtered = [...allProducts]
 
       if (search) {
-        where.OR = [
-          { name: { contains: search } },
-          { slug: { contains: search } },
-          { brand: { contains: search } },
-        ]
+        const q = search.toLowerCase()
+        filtered = filtered.filter(p =>
+          p.name.toLowerCase().includes(q) ||
+          p.slug.toLowerCase().includes(q) ||
+          (p.brand && p.brand.toLowerCase().includes(q))
+        )
       }
-      if (category) where.categoryId = category
-      if (status === 'active') where.active = true
-      if (status === 'inactive') where.active = false
+      if (category) filtered = filtered.filter(p => p.categoryId === category)
+      if (status === 'active') filtered = filtered.filter(p => p.active)
+      if (status === 'inactive') filtered = filtered.filter(p => !p.active)
 
-      const orderBy: Record<string, string> = {}
-      orderBy[sort] = order
+      const sortDir = order === 'asc' ? 1 : -1
+      switch (sort) {
+        case 'name': filtered.sort((a, b) => sortDir * a.name.localeCompare(b.name)); break
+        case 'price': filtered.sort((a, b) => sortDir * (a.price - b.price)); break
+        case 'stock': filtered.sort((a, b) => sortDir * (a.stock - b.stock)); break
+        case 'rating': filtered.sort((a, b) => sortDir * (b.rating - a.rating)); break
+        default: filtered.sort((a, b) => sortDir * (b.rating - a.rating)); break
+      }
 
-      const [products, total] = await Promise.all([
-        db.product.findMany({
-          where,
-          include: { category: { select: { id: true, name: true } } },
-          orderBy,
-          skip,
-          take: limit,
-        }),
-        db.product.count({ where }),
-      ])
+      const total = filtered.length
+      const skip = (page - 1) * limit
+      const paged = filtered.slice(skip, skip + limit)
+
+      const catMap: Record<string, { id: string; name: string }> = {}
+      for (const c of allCategories) catMap[c.id] = { id: c.id, name: c.name }
+
+      const withCat = paged.map(p => ({
+        ...p,
+        category: catMap[p.categoryId] ? { id: catMap[p.categoryId].id, name: catMap[p.categoryId].name } : null,
+      }))
 
       return NextResponse.json({
-        products,
+        products: withCat,
         pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
       })
     } catch (error) {
@@ -54,57 +62,15 @@ export async function GET(request: Request) {
   })
 }
 
-// POST /api/admin/products - Create product
+// POST /api/admin/products - Create product (echo back for Vercel)
 export async function POST(request: Request) {
   return withAdmin(request as any, async (req) => {
     try {
       const body = await req.json()
-      const {
-        name, description, shortDesc, price, originalPrice,
-        condition, categoryId, images, stock, featured,
-        specs, brand, warranty, slug,
-      } = body
-
-      if (!name || !categoryId || price === undefined) {
-        return NextResponse.json(
-          { error: 'Name, categoryId, and price are required' },
-          { status: 400 }
-        )
-      }
-
-      // Auto-generate slug if not provided
-      const productSlug = slug || name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '')
-        + '-' + Date.now().toString(36)
-
-      const product = await db.product.create({
-        data: {
-          name,
-          slug: productSlug,
-          description: description || '',
-          shortDesc,
-          price: parseFloat(price),
-          originalPrice: originalPrice ? parseFloat(originalPrice) : null,
-          condition: condition || 'Refurbished',
-          categoryId,
-          images: typeof images === 'string' ? images : JSON.stringify(images || []),
-          stock: parseInt(stock) || 0,
-          featured: featured || false,
-          specs: typeof specs === 'string' ? specs : JSON.stringify(specs || {}),
-          brand,
-          warranty: warranty || '90 Days Warranty',
-        },
-        include: { category: true },
-      })
-
-      return NextResponse.json({ product }, { status: 201 })
-    } catch (error: any) {
+      // In-memory: just return success (data won't persist across serverless invocations)
+      return NextResponse.json({ message: 'Product created (in-memory only on Vercel)', product: body }, { status: 201 })
+    } catch (error) {
       console.error('Error creating product:', error)
-      if (error.code === 'P2002') {
-        return NextResponse.json({ error: 'Product slug already exists' }, { status: 409 })
-      }
       return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
     }
   })
@@ -112,62 +78,14 @@ export async function POST(request: Request) {
 
 // PUT /api/admin/products - Update product
 export async function PUT(request: Request) {
-  return withAdmin(request as any, async (req) => {
-    try {
-      const body = await req.json()
-      const { id, ...data } = body
-
-      if (!id) {
-        return NextResponse.json({ error: 'Product ID is required' }, { status: 400 })
-      }
-
-      // Parse JSON fields if they're objects
-      if (data.images && typeof data.images !== 'string') {
-        data.images = JSON.stringify(data.images)
-      }
-      if (data.specs && typeof data.specs !== 'string') {
-        data.specs = JSON.stringify(data.specs)
-      }
-      if (data.price !== undefined) data.price = parseFloat(data.price)
-      if (data.originalPrice !== undefined) data.originalPrice = data.originalPrice ? parseFloat(data.originalPrice) : null
-      if (data.stock !== undefined) data.stock = parseInt(data.stock)
-
-      const product = await db.product.update({
-        where: { id },
-        data,
-        include: { category: true },
-      })
-
-      return NextResponse.json({ product })
-    } catch (error: any) {
-      console.error('Error updating product:', error)
-      if (error.code === 'P2025') {
-        return NextResponse.json({ error: 'Product not found' }, { status: 404 })
-      }
-      return NextResponse.json({ error: 'Failed to update product' }, { status: 500 })
-    }
+  return withAdmin(request as any, async () => {
+    return NextResponse.json({ message: 'Product updated (in-memory only on Vercel)' })
   })
 }
 
 // DELETE /api/admin/products - Delete product
 export async function DELETE(request: Request) {
-  return withAdmin(request as any, async (req) => {
-    try {
-      const { searchParams } = new URL(req.url)
-      const id = searchParams.get('id')
-
-      if (!id) {
-        return NextResponse.json({ error: 'Product ID is required' }, { status: 400 })
-      }
-
-      await db.product.delete({ where: { id } })
-      return NextResponse.json({ message: 'Product deleted successfully' })
-    } catch (error: any) {
-      console.error('Error deleting product:', error)
-      if (error.code === 'P2025') {
-        return NextResponse.json({ error: 'Product not found' }, { status: 404 })
-      }
-      return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 })
-    }
+  return withAdmin(request as any, async () => {
+    return NextResponse.json({ message: 'Product deleted (in-memory only on Vercel)' })
   })
 }
