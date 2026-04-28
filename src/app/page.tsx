@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { useAppStore, rehydrateStores } from '@/lib/store'
-import { AnimatePresence, motion } from 'framer-motion'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import HomePage from '@/components/pages/HomePage'
@@ -57,7 +56,7 @@ export default function Home() {
   const PageComponent = pageComponents[view] || HomePage
 
   // Use composite keys to force remount on param changes
-  const getAnimKey = () => {
+  const getPageKey = () => {
     if (view === 'product-detail') return `${view}-${selectedProductId || ''}`
     if (view === 'order-detail') return `${view}-${selectedOrderNumber || ''}`
     if (view === 'info') return `${view}-${selectedInfoSlug || ''}`
@@ -67,19 +66,11 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
-      <main className="flex-1">
+      <main className="flex-1" suppressHydrationWarning>
         {mounted ? (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={getAnimKey()}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-            >
-              <PageComponent />
-            </motion.div>
-          </AnimatePresence>
+          <div key={getPageKey()}>
+            <PageComponent />
+          </div>
         ) : (
           <div className="min-h-screen flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-[#FCD116] border-t-transparent rounded-full animate-spin" />
