@@ -41,75 +41,128 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-emerald-accent: var(--emerald-accent);
+  --color-emerald-accent-foreground: var(--emerald-accent-foreground);
 }
 
+/* ─── Gold & Emerald Theme — Light Mode ─── */
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+
+  /* Core surfaces */
+  --background: oklch(0.998 0.002 80);
+  --foreground: oklch(0.15 0.015 60);
+  --card: oklch(0.999 0.002 80);
+  --card-foreground: oklch(0.15 0.015 60);
+  --popover: oklch(0.999 0.002 80);
+  --popover-foreground: oklch(0.15 0.015 60);
+
+  /* Primary — Rich Gold */
+  --primary: oklch(0.745 0.165 79);
+  --primary-foreground: oklch(0.18 0.04 60);
+
+  /* Secondary — Emerald tint */
+  --secondary: oklch(0.955 0.028 163);
+  --secondary-foreground: oklch(0.28 0.065 163);
+
+  /* Muted — Warm gray */
+  --muted: oklch(0.96 0.008 80);
+  --muted-foreground: oklch(0.54 0.015 60);
+
+  /* Accent — Light gold shimmer */
+  --accent: oklch(0.955 0.035 79);
+  --accent-foreground: oklch(0.28 0.07 65);
+
+  /* Destructive — Red */
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Borders & inputs — warm tint */
+  --border: oklch(0.918 0.012 80);
+  --input: oklch(0.918 0.012 80);
+  --ring: oklch(0.745 0.165 79);
+
+  /* Charts — Ghana flag inspired */
+  --chart-1: oklch(0.745 0.165 79);      /* Gold */
+  --chart-2: oklch(0.545 0.135 163);      /* Emerald */
+  --chart-3: oklch(0.577 0.245 27.325);   /* Red */
+  --chart-4: oklch(0.72 0.14 70);         /* Amber */
+  --chart-5: oklch(0.62 0.11 180);        /* Teal */
+
+  /* Sidebar — Emerald toned */
+  --sidebar: oklch(0.98 0.008 163);
+  --sidebar-foreground: oklch(0.15 0.015 60);
+  --sidebar-primary: oklch(0.545 0.135 163);
+  --sidebar-primary-foreground: oklch(0.99 0.002 80);
+  --sidebar-accent: oklch(0.955 0.028 163);
+  --sidebar-accent-foreground: oklch(0.28 0.065 163);
+  --sidebar-border: oklch(0.918 0.012 163);
+  --sidebar-ring: oklch(0.545 0.135 163);
+
+  /* Custom brand tokens */
+  --gold: oklch(0.745 0.165 79);
+  --gold-foreground: oklch(0.18 0.04 60);
+  --emerald-accent: oklch(0.545 0.135 163);
+  --emerald-accent-foreground: oklch(0.99 0.002 80);
 }
 
+/* ─── Gold & Emerald Theme — Dark Mode ─── */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Core surfaces */
+  --background: oklch(0.14 0.015 163);
+  --foreground: oklch(0.96 0.008 80);
+  --card: oklch(0.19 0.015 163);
+  --card-foreground: oklch(0.96 0.008 80);
+  --popover: oklch(0.19 0.015 163);
+  --popover-foreground: oklch(0.96 0.008 80);
+
+  /* Primary — Brighter Gold for dark bg */
+  --primary: oklch(0.78 0.165 79);
+  --primary-foreground: oklch(0.15 0.04 60);
+
+  /* Secondary — Deep emerald */
+  --secondary: oklch(0.25 0.04 163);
+  --secondary-foreground: oklch(0.96 0.008 80);
+
+  /* Muted */
+  --muted: oklch(0.25 0.02 163);
+  --muted-foreground: oklch(0.68 0.015 80);
+
+  /* Accent — Dark gold */
+  --accent: oklch(0.25 0.04 80);
+  --accent-foreground: oklch(0.96 0.008 80);
+
+  /* Destructive */
   --destructive: oklch(0.704 0.191 22.216);
+
+  /* Borders & inputs */
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.78 0.165 79);
+
+  /* Charts */
+  --chart-1: oklch(0.78 0.165 79);
+  --chart-2: oklch(0.65 0.13 163);
+  --chart-3: oklch(0.704 0.191 22.216);
+  --chart-4: oklch(0.72 0.14 70);
+  --chart-5: oklch(0.65 0.11 180);
+
+  /* Sidebar */
+  --sidebar: oklch(0.16 0.018 163);
+  --sidebar-foreground: oklch(0.96 0.008 80);
+  --sidebar-primary: oklch(0.78 0.165 79);
+  --sidebar-primary-foreground: oklch(0.15 0.04 60);
+  --sidebar-accent: oklch(0.25 0.04 163);
+  --sidebar-accent-foreground: oklch(0.96 0.008 80);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.78 0.165 79);
+
+  /* Custom brand tokens */
+  --gold: oklch(0.78 0.165 79);
+  --gold-foreground: oklch(0.15 0.04 60);
+  --emerald-accent: oklch(0.65 0.13 163);
+  --emerald-accent-foreground: oklch(0.99 0.002 80);
 }
 
 @layer base {
@@ -121,7 +174,7 @@
   }
 }
 
-/* Custom Scrollbar Styles */
+/* Custom Scrollbar Styles — Gold themed */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -132,18 +185,18 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: oklch(0.7 0 0 / 40%);
+  background: oklch(0.745 0.165 79 / 30%);
   border-radius: 9999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.6 0 0 / 60%);
+  background: oklch(0.745 0.165 79 / 50%);
 }
 
 /* Firefox scrollbar */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: oklch(0.7 0 0 / 40%) transparent;
+  scrollbar-color: oklch(0.745 0.165 79 / 30%) transparent;
 }
 
 /* Hide scrollbar but keep functionality */
@@ -158,60 +211,60 @@
 
 /* Brand gold color utility */
 .brand-gold {
-  color: #FCD116;
+  color: #C59F00;
 }
 
 .bg-brand-gold {
-  background-color: #FCD116;
+  background-color: #C59F00;
 }
 
 .hover\:bg-brand-gold:hover {
-  background-color: #D4AA00;
+  background-color: #A88500;
 }
 
 .brand-orange {
-  color: #FCD116;
+  color: #C59F00;
 }
 
 .bg-brand-orange {
-  background-color: #FCD116;
+  background-color: #C59F00;
 }
 
 .hover\:bg-brand-orange:hover {
-  background-color: #D4AA00;
+  background-color: #A88500;
 }
 
-/* Product card image gradient backgrounds */
+/* Product card image gradient backgrounds — Gold & Emerald palette */
 .product-gradient-1 {
-  background: linear-gradient(135deg, #FCD116 0%, #D4AA00 100%);
+  background: linear-gradient(135deg, #C59F00 0%, #FCD116 100%);
 }
 
 .product-gradient-2 {
-  background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
+  background: linear-gradient(135deg, #047857 0%, #34D399 100%);
 }
 
 .product-gradient-3 {
-  background: linear-gradient(135deg, #059669 0%, #34D399 100%);
+  background: linear-gradient(135deg, #065F46 0%, #059669 100%);
 }
 
 .product-gradient-4 {
-  background: linear-gradient(135deg, #DC2626 0%, #F87171 100%);
+  background: linear-gradient(135deg, #CE1126 0%, #F87171 100%);
 }
 
 .product-gradient-5 {
-  background: linear-gradient(135deg, #2563EB 0%, #60A5FA 100%);
+  background: linear-gradient(135deg, #004D2E 0%, #10B981 100%);
 }
 
 .product-gradient-6 {
-  background: linear-gradient(135deg, #006B3F 0%, #34D399 100%);
+  background: linear-gradient(135deg, #B8860B 0%, #F59E0B 100%);
 }
 
 .product-gradient-7 {
-  background: linear-gradient(135deg, #7C3AED 0%, #C084FC 100%);
+  background: linear-gradient(135deg, #064E3B 0%, #6EE7B7 100%);
 }
 
 .product-gradient-8 {
-  background: linear-gradient(135deg, #0891B2 0%, #22D3EE 100%);
+  background: linear-gradient(135deg, #92400E 0%, #D97706 100%);
 }
 
 /* Line clamp utilities */

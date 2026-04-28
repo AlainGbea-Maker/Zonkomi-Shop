@@ -71,32 +71,32 @@ const categoryEmojis: Record<string, string> = {
 }
 
 const categoryGradients: Record<string, string> = {
-  'Laptops': 'from-orange-500 to-amber-400',
-  'Smartphones': 'from-violet-500 to-purple-400',
-  'Tablets': 'from-sky-500 to-blue-400',
-  'Desktops': 'from-emerald-500 to-green-400',
-  'Monitors': 'from-cyan-500 to-teal-400',
-  'Headphones': 'from-pink-500 to-rose-400',
-  'Cameras': 'from-red-500 to-orange-400',
-  'Gaming': 'from-indigo-500 to-violet-400',
-  'Audio': 'from-teal-500 to-emerald-400',
-  'Wearables': 'from-amber-500 to-yellow-400',
-  'Networking': 'from-blue-500 to-indigo-400',
-  'Storage': 'from-green-500 to-emerald-400',
-  'Accessories': 'from-gray-500 to-zinc-400',
-  'TVs': 'from-purple-500 to-pink-400',
+  'Laptops': 'from-amber-500 to-yellow-400',
+  'Smartphones': 'from-emerald-600 to-emerald-400',
+  'Tablets': 'from-teal-500 to-teal-300',
+  'Desktops': 'from-emerald-700 to-green-500',
+  'Monitors': 'from-cyan-600 to-teal-400',
+  'Headphones': 'from-amber-600 to-amber-400',
+  'Cameras': 'from-red-600 to-red-400',
+  'Gaming': 'from-yellow-600 to-amber-400',
+  'Audio': 'from-emerald-500 to-green-400',
+  'Wearables': 'from-amber-500 to-yellow-300',
+  'Networking': 'from-teal-600 to-emerald-400',
+  'Storage': 'from-green-600 to-emerald-400',
+  'Accessories': 'from-stone-500 to-stone-400',
+  'TVs': 'from-yellow-700 to-amber-500',
 }
 
 function getDefaultGradient(index: number) {
   const gradients = [
-    'from-orange-500 to-amber-400',
-    'from-violet-500 to-purple-400',
-    'from-sky-500 to-blue-400',
-    'from-emerald-500 to-green-400',
-    'from-pink-500 to-rose-400',
-    'from-red-500 to-orange-400',
-    'from-teal-500 to-cyan-400',
-    'from-indigo-500 to-violet-400',
+    'from-amber-500 to-yellow-400',
+    'from-emerald-600 to-emerald-400',
+    'from-teal-500 to-teal-300',
+    'from-yellow-600 to-amber-400',
+    'from-green-600 to-emerald-400',
+    'from-red-600 to-red-400',
+    'from-cyan-600 to-teal-400',
+    'from-emerald-700 to-green-500',
   ]
   return gradients[index % gradients.length]
 }
@@ -357,7 +357,7 @@ export default function HomePage() {
               <Card className="border-2 border-red-200 overflow-hidden">
                 <CardContent className="p-0">
                   <div className="flex flex-col md:flex-row">
-                    <div className="md:w-1/3 aspect-square md:aspect-auto bg-gradient-to-br from-red-500 to-orange-400 flex items-center justify-center p-8 overflow-hidden">
+                    <div className="md:w-1/3 aspect-square md:aspect-auto bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center p-8 overflow-hidden">
                       {getProductImage(dealProduct.images) ? (
                         <img
                           src={getProductImage(dealProduct.images)!}
@@ -557,10 +557,10 @@ export default function HomePage() {
             {/* Right - Prize Cards */}
             <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto lg:mx-0 lg:ml-auto">
               {[
-                { prize: '20% Off', color: 'from-red-500 to-orange-500', emoji: '🔥', desc: 'Maximum savings' },
-                { prize: 'Free Shipping', color: 'from-emerald-500 to-teal-500', emoji: '🚚', desc: 'Delivered free' },
-                { prize: '15% Off', color: 'from-purple-500 to-violet-500', emoji: '💎', desc: 'Premium discount' },
-                { prize: 'GH₵25 Off', color: 'from-pink-500 to-rose-500', emoji: '💰', desc: 'Cash savings' },
+                { prize: '20% Off', color: 'from-red-600 to-red-400', emoji: '🔥', desc: 'Maximum savings' },
+                { prize: 'Free Shipping', color: 'from-emerald-600 to-teal-400', emoji: '🚚', desc: 'Delivered free' },
+                { prize: '15% Off', color: 'from-amber-600 to-yellow-400', emoji: '💎', desc: 'Premium discount' },
+                { prize: 'GH₵25 Off', color: 'from-yellow-500 to-amber-400', emoji: '💰', desc: 'Cash savings' },
               ].map((item, i) => (
                 <motion.div
                   key={item.prize}
