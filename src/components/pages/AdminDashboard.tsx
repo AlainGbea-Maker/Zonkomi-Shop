@@ -756,7 +756,7 @@ export default function AdminDashboard() {
     { icon: Package, label: 'Products', value: stats?.totalProducts || 0, color: 'text-blue-600', bg: 'bg-blue-50', accent: 'border-blue-200' },
     { icon: ShoppingCart, label: 'Orders', value: stats?.totalOrders || 0, color: 'text-purple-600', bg: 'bg-purple-50', accent: 'border-purple-200' },
     { icon: Users, label: 'Customers', value: stats?.totalUsers || 0, color: 'text-emerald-600', bg: 'bg-emerald-50', accent: 'border-emerald-200' },
-    { icon: GhanaCedi, label: 'Revenue', value: `GH\u20B5${((stats?.totalRevenue || 0)).toFixed(2)}`, color: 'text-[#C59F00]', bg: 'bg-[#FCD116]/20', accent: 'border-[#C59F00]' },
+    { icon: GhanaCedi, label: 'Revenue', value: `GH₵${((stats?.totalRevenue || 0)).toFixed(2)}`, color: 'text-[#C59F00]', bg: 'bg-[#FCD116]/20', accent: 'border-[#C59F00]' },
   ]
 
   // ==================== ANALYTICS ====================
@@ -917,7 +917,7 @@ export default function AdminDashboard() {
                               </p>
                             </div>
                             <div className="text-right ml-3">
-                              <p className="font-bold text-sm text-[#C59F00]">GH\u20B5{order.total.toFixed(2)}</p>
+                              <p className="font-bold text-sm text-[#C59F00]">GH₵{order.total.toFixed(2)}</p>
                             </div>
                           </div>
                         ))}
@@ -963,7 +963,7 @@ export default function AdminDashboard() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-gray-800 truncate">{product.name}</p>
-                                <p className="text-xs text-gray-500">GH\u20B5{product.price.toFixed(2)}</p>
+                                <p className="text-xs text-gray-500">GH₵{product.price.toFixed(2)}</p>
                               </div>
                               <Badge className={`${product.stock === 0 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'} text-xs font-bold`}>
                                 {product.stock === 0 ? 'Out' : product.stock} in stock
@@ -1019,7 +1019,7 @@ export default function AdminDashboard() {
                                 {product.name}
                               </p>
                               <p className="text-[10px] text-gray-500 mt-0.5">{product.totalSold} sold</p>
-                              <p className="text-xs font-bold text-[#C59F00] mt-1">GH\u20B5{product.revenue.toFixed(0)}</p>
+                              <p className="text-xs font-bold text-[#C59F00] mt-1">GH₵{product.revenue.toFixed(0)}</p>
                             </motion.div>
                           )
                         })}
@@ -1123,7 +1123,7 @@ export default function AdminDashboard() {
                             </div>
                             <div className="flex items-center gap-2 md:gap-3 flex-shrink-0 ml-2">
                               <div className="hidden sm:block text-right">
-                                <p className="font-bold text-sm text-[#C59F00]">GH\u20B5{order.total.toFixed(2)}</p>
+                                <p className="font-bold text-sm text-[#C59F00]">GH₵{order.total.toFixed(2)}</p>
                                 <p className="text-[10px] text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</p>
                               </div>
                               <div
@@ -1141,7 +1141,7 @@ export default function AdminDashboard() {
                           {/* Mobile total + date row */}
                           <div className="sm:hidden px-3 pb-1 flex items-center justify-between text-xs text-gray-500">
                             <span>{new Date(order.createdAt).toLocaleDateString()}</span>
-                            <span className="font-bold text-[#C59F00]">GH\u20B5{order.total.toFixed(2)}</span>
+                            <span className="font-bold text-[#C59F00]">GH₵{order.total.toFixed(2)}</span>
                           </div>
 
                           {/* Expanded Detail */}
@@ -1218,8 +1218,8 @@ export default function AdminDashboard() {
                                               <tr key={item.id} className="border-t border-gray-50">
                                                 <td className="py-2 px-3 text-gray-800 font-medium truncate max-w-[200px]">{item.name}</td>
                                                 <td className="py-2 px-3 text-center text-gray-600">{item.quantity}</td>
-                                                <td className="py-2 px-3 text-right text-gray-600">GH\u20B5{item.price.toFixed(2)}</td>
-                                                <td className="py-2 px-3 text-right font-semibold text-gray-800">GH\u20B5{(item.price * item.quantity).toFixed(2)}</td>
+                                                <td className="py-2 px-3 text-right text-gray-600">GH₵{item.price.toFixed(2)}</td>
+                                                <td className="py-2 px-3 text-right font-semibold text-gray-800">GH₵{(item.price * item.quantity).toFixed(2)}</td>
                                               </tr>
                                             ))}
                                           </tbody>
@@ -1230,20 +1230,20 @@ export default function AdminDashboard() {
                                         <div className="text-xs space-y-0.5 text-right">
                                           <div className="flex gap-6 text-gray-500">
                                             <span>Subtotal:</span>
-                                            <span>GH\u20B5{order.subtotal.toFixed(2)}</span>
+                                            <span>GH₵{order.subtotal.toFixed(2)}</span>
                                           </div>
                                           <div className="flex gap-6 text-gray-500">
                                             <span>Shipping:</span>
-                                            <span>{order.shipping === 0 ? 'Free' : `GH\u20B5${order.shipping.toFixed(2)}`}</span>
+                                            <span>{order.shipping === 0 ? 'Free' : `GH₵${order.shipping.toFixed(2)}`}</span>
                                           </div>
                                           <div className="flex gap-6 text-gray-500">
                                             <span>Tax:</span>
-                                            <span>GH\u20B5{order.tax.toFixed(2)}</span>
+                                            <span>GH₵{order.tax.toFixed(2)}</span>
                                           </div>
                                           <Separator className="my-1" />
                                           <div className="flex gap-6 font-bold text-gray-900 text-sm">
                                             <span>Total:</span>
-                                            <span className="text-[#C59F00]">GH\u20B5{order.total.toFixed(2)}</span>
+                                            <span className="text-[#C59F00]">GH₵{order.total.toFixed(2)}</span>
                                           </div>
                                         </div>
                                       </div>
@@ -1305,7 +1305,7 @@ export default function AdminDashboard() {
                       </div>
                       <div>
                         <p className="text-[10px] md:text-xs text-gray-500">Inventory Value</p>
-                        <p className="text-sm md:text-lg font-bold text-gray-900">{inventorySummary ? `GH\u20B5${inventorySummary.totalValue.toFixed(0)}` : '-'}</p>
+                        <p className="text-sm md:text-lg font-bold text-gray-900">{inventorySummary ? `GH₵${inventorySummary.totalValue.toFixed(0)}` : '-'}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -1515,9 +1515,9 @@ export default function AdminDashboard() {
 
                           {/* Price */}
                           <div className="text-right flex-shrink-0">
-                            <p className="font-bold text-sm text-[#C59F00]">GH\u20B5{product.price.toFixed(2)}</p>
+                            <p className="font-bold text-sm text-[#C59F00]">GH₵{product.price.toFixed(2)}</p>
                             {product.originalPrice && (
-                              <p className="text-[10px] text-gray-400 line-through">GH\u20B5{product.originalPrice.toFixed(2)}</p>
+                              <p className="text-[10px] text-gray-400 line-through">GH₵{product.originalPrice.toFixed(2)}</p>
                             )}
                           </div>
 
@@ -1754,7 +1754,7 @@ export default function AdminDashboard() {
                         <div className="bg-gradient-to-r from-[#002B1B] to-[#004D2B] rounded-xl p-4 text-white">
                           <p className="text-xs text-white/70">Total Revenue</p>
                           <p className="text-2xl md:text-3xl font-bold mt-1">
-                            GH\u20B5{((stats?.totalRevenue || 0)).toFixed(2)}
+                            GH₵{((stats?.totalRevenue || 0)).toFixed(2)}
                           </p>
                           <div className="flex items-center gap-2 mt-2">
                             <div className="flex items-center gap-1 text-xs text-white/80">
@@ -1778,7 +1778,7 @@ export default function AdminDashboard() {
                                       <span className="text-gray-600 font-medium">{m.month}</span>
                                       <div className="flex items-center gap-2">
                                         <span className="text-gray-500">{m.orders} orders</span>
-                                        <span className="font-semibold text-[#C59F00]">GH\u20B5{m.revenue.toFixed(0)}</span>
+                                        <span className="font-semibold text-[#C59F00]">GH₵{m.revenue.toFixed(0)}</span>
                                       </div>
                                     </div>
                                     <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
@@ -1804,7 +1804,7 @@ export default function AdminDashboard() {
                               <span className="text-xs text-gray-600">Avg Order</span>
                             </div>
                             <p className="text-lg font-bold text-gray-900">
-                              GH\u20B5{stats && stats.totalOrders > 0
+                              GH₵{stats && stats.totalOrders > 0
                                 ? (stats.totalRevenue / stats.totalOrders).toFixed(2)
                                 : '0.00'}
                             </p>
@@ -1939,7 +1939,7 @@ export default function AdminDashboard() {
               {/* Price + Original Price + Stock */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="prod-price">Price (GH\u20B5) *</Label>
+                  <Label htmlFor="prod-price">Price (GH₵) *</Label>
                   <Input
                     id="prod-price"
                     type="number"
