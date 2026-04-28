@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { toast } from '@/hooks/use-toast'
 
 // ==================== TYPES ====================
 export interface Product {
@@ -164,6 +165,20 @@ export const useCartStore = create<CartStore>()(
           return {
             items: [...state.items, { productId: product.id, quantity, product }],
           }
+        })
+
+        // Show cart notification
+        const existingItem = get().items.find((i) => i.productId === product.id)
+        const totalQty = existingItem
+          ? Math.min((existingItem.quantity - quantity) + quantity, product.stock)
+          : quantity
+        const wasAlreadyInCart = existingItem !== undefined && totalQty > quantity
+
+        toast({
+          title: wasAlreadyInCart ? 'Cart updated' : 'Added to cart',
+          description: wasAlreadyInCart
+            ? `${product.name} — now ${totalQty} in cart`
+            : `${product.name} — GH₵${product.price.toFixed(2)}`,
         })
       },
       removeItem: (productId) => {
