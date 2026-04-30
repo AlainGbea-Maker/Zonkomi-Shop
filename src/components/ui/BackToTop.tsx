@@ -2,9 +2,12 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowUp } from 'lucide-react'
+import { useLanguageStore, translations } from '@/lib/language-store'
 
 export default function BackToTop() {
   const [show, setShow] = useState(false)
+  const { language } = useLanguageStore()
+  const t = (key: string) => translations[language][key] || key
 
   useEffect(() => {
     const handleScroll = () => setShow(window.scrollY > 400)
@@ -27,8 +30,8 @@ export default function BackToTop() {
           whileTap={{ scale: 0.9 }}
           onClick={scrollToTop}
           className="fixed bottom-6 right-24 z-40 w-12 h-12 rounded-full bg-[#004D2E] hover:bg-[#003D26] text-white shadow-lg shadow-black/20 flex items-center justify-center transition-colors"
-          aria-label="Back to top"
-          title="Back to top"
+          aria-label={t('backToTop')}
+          title={t('backToTop')}
         >
           <ArrowUp className="w-5 h-5" />
         </motion.button>

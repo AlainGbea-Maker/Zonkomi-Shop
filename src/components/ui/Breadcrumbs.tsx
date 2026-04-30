@@ -1,6 +1,7 @@
 'use client'
 import { ChevronRight, Home } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
+import { useLanguageStore, translations } from '@/lib/language-store'
 
 interface BreadcrumbItem {
   label: string
@@ -13,11 +14,14 @@ interface BreadcrumbsProps {
 
 export default function Breadcrumbs({ items }: BreadcrumbsProps) {
   const { navigate } = useAppStore()
+  const { language } = useLanguageStore()
+  const t = (key: string) => translations[language][key] || key
+
   return (
     <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm mb-4 flex-wrap">
       <button onClick={() => navigate('home')} className="flex items-center gap-1 text-gray-400 hover:text-[#C59F00] transition-colors">
         <Home className="w-3.5 h-3.5" />
-        <span>Home</span>
+        <span>{t('breadcrumbs.home')}</span>
       </button>
       {items.map((item, i) => (
         <span key={i} className="flex items-center gap-1">

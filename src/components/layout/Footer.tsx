@@ -6,6 +6,7 @@ import { toast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ArrowUp } from 'lucide-react'
+import { useLanguageStore, translations } from '@/lib/language-store'
 
 function FooterLink({ slug, children }: { slug?: string; action?: () => void; children: React.ReactNode }) {
   const { navigate } = useAppStore()
@@ -45,6 +46,8 @@ function FooterNavLink({ onClick, children }: { onClick: () => void; children: R
 export default function Footer() {
   const { navigate } = useAppStore()
   const [email, setEmail] = useState('')
+  const { language } = useLanguageStore()
+  const t = (key: string) => translations[language][key] || key
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -54,8 +57,8 @@ export default function Footer() {
     e.preventDefault()
     if (!email.trim()) return
     toast({
-      title: "You're in! 🎉",
-      description: "Welcome to the Zonkomi family. Check your inbox for a surprise.",
+      title: t('footer.youreIn'),
+      description: t('footer.youreInDesc'),
     })
     setEmail('')
   }
@@ -67,7 +70,7 @@ export default function Footer() {
         onClick={scrollToTop}
         className="w-full bg-[#CE1126] hover:bg-[#A80D1E] text-white text-sm py-3.5 transition-colors"
       >
-        Back to top
+        {t('footer.backToTop')}
       </button>
 
       {/* Main footer */}
@@ -75,46 +78,46 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Get to Know Us */}
           <div>
-            <h3 className="font-bold text-sm mb-3">Get to Know Us</h3>
+            <h3 className="font-bold text-sm mb-3">{t('footer.getToKnowUs')}</h3>
             <ul className="space-y-2">
-              <FooterLink slug="about">About Zonkomi Shop</FooterLink>
-              <FooterLink slug="careers">Careers</FooterLink>
-              <FooterLink slug="press">Press Releases</FooterLink>
-              <FooterLink slug="sustainability">Sustainability</FooterLink>
+              <FooterLink slug="about">{t('footer.aboutUs')}</FooterLink>
+              <FooterLink slug="careers">{t('footer.careers')}</FooterLink>
+              <FooterLink slug="press">{t('footer.pressReleases')}</FooterLink>
+              <FooterLink slug="sustainability">{t('footer.sustainability')}</FooterLink>
             </ul>
           </div>
 
           {/* Make Money with Us */}
           <div>
-            <h3 className="font-bold text-sm mb-3">Make Money with Us</h3>
+            <h3 className="font-bold text-sm mb-3">{t('footer.makeMoneyWithUs')}</h3>
             <ul className="space-y-2">
-              <FooterLink slug="sell-on-zonkomi">Sell on Zonkomi Shop</FooterLink>
-              <FooterLink slug="affiliate">Affiliate Program</FooterLink>
-              <FooterLink slug="advertise">Advertise Products</FooterLink>
-              <FooterLink slug="trade-in">Trade-In Program</FooterLink>
+              <FooterLink slug="sell-on-zonkomi">{t('footer.sellOnZonkomi')}</FooterLink>
+              <FooterLink slug="affiliate">{t('footer.affiliateProgram')}</FooterLink>
+              <FooterLink slug="advertise">{t('footer.advertiseProducts')}</FooterLink>
+              <FooterLink slug="trade-in">{t('footer.tradeInProgram')}</FooterLink>
             </ul>
           </div>
 
           {/* Payment Options */}
           <div>
-            <h3 className="font-bold text-sm mb-3">Payment Options</h3>
+            <h3 className="font-bold text-sm mb-3">{t('footer.paymentOptions')}</h3>
             <ul className="space-y-2">
-              <FooterLink slug="payments">Mobile Money</FooterLink>
-              <FooterLink slug="payments">Credit / Debit Card</FooterLink>
-              <FooterLink slug="giftcards">Gift Cards</FooterLink>
-              <FooterLink slug="financing">Financing Available</FooterLink>
+              <FooterLink slug="payments">{t('footer.mobileMoney')}</FooterLink>
+              <FooterLink slug="payments">{t('footer.creditDebitCard')}</FooterLink>
+              <FooterLink slug="giftcards">{t('footer.giftCards')}</FooterLink>
+              <FooterLink slug="financing">{t('footer.financingAvailable')}</FooterLink>
             </ul>
           </div>
 
           {/* Let Us Help You */}
           <div>
-            <h3 className="font-bold text-sm mb-3">Let Us Help You</h3>
+            <h3 className="font-bold text-sm mb-3">{t('footer.letUsHelpYou')}</h3>
             <ul className="space-y-2">
-              <FooterNavLink onClick={() => navigate('account')}>Your Account</FooterNavLink>
-              <FooterNavLink onClick={() => navigate('orders')}>Your Orders</FooterNavLink>
-              <FooterLink slug="shipping">Shipping &amp; Returns</FooterLink>
-              <FooterLink slug="customer-service">Customer Service</FooterLink>
-              <FooterLink slug="help">Help</FooterLink>
+              <FooterNavLink onClick={() => navigate('account')}>{t('footer.yourAccount')}</FooterNavLink>
+              <FooterNavLink onClick={() => navigate('orders')}>{t('footer.yourOrders')}</FooterNavLink>
+              <FooterLink slug="shipping">{t('footer.shippingReturns')}</FooterLink>
+              <FooterLink slug="customer-service">{t('footer.customerService')}</FooterLink>
+              <FooterLink slug="help">{t('footer.help')}</FooterLink>
             </ul>
           </div>
         </div>
@@ -124,7 +127,7 @@ export default function Footer() {
       <div className="bg-[#003D26] text-white">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
-            <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">We Accept:</span>
+            <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">{t('footer.weAccept')}</span>
             <div className="flex flex-wrap items-center gap-3">
               {[
                 { label: 'MTN MoMo', color: 'bg-yellow-500' },
@@ -151,22 +154,22 @@ export default function Footer() {
       <div className="bg-[#002B1B] border-t border-[#004D2E]">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="max-w-xl mx-auto text-center">
-            <h3 className="text-lg font-bold text-white mb-1">Stay in the Loop</h3>
-            <p className="text-sm text-gray-400 mb-4">Get exclusive deals, new arrivals &amp; tech tips delivered to your inbox</p>
+            <h3 className="text-lg font-bold text-white mb-1">{t('footer.stayInTheLoop')}</h3>
+            <p className="text-sm text-gray-400 mb-4">{t('footer.newsletterDesc')}</p>
             <form onSubmit={handleSubscribe} className="flex gap-2">
               <Input
                 type="email"
-                placeholder="Enter your email address"
+                placeholder={t('footer.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-gray-500 h-10 rounded-lg"
                 required
               />
               <Button type="submit" className="bg-[#FCD116] hover:bg-[#D4AA00] text-[#1a1a1a] rounded-lg px-6 h-10 font-semibold">
-                Subscribe
+                {t('footer.subscribe')}
               </Button>
             </form>
-            <p className="text-[10px] text-gray-500 mt-2">No spam, unsubscribe anytime. Join 10,000+ smart shoppers.</p>
+            <p className="text-[10px] text-gray-500 mt-2">{t('footer.noSpam')}</p>
           </div>
         </div>
       </div>
@@ -179,7 +182,7 @@ export default function Footer() {
             <span className="font-bold text-lg">Zonkomi Shop</span>
           </div>
           <p className="text-xs text-gray-400" suppressHydrationWarning>
-            &copy; 2025 Zonkomi Shop. All rights reserved. Premium refurbished electronics.
+            {t('footer.copyright')}
           </p>
         </div>
       </div>

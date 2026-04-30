@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { useAppStore, useUserStore } from '@/lib/store'
+import AiInsightsPanel from '@/components/admin/AiInsightsPanel'
 import {
   BarChart3,
   Package,
@@ -59,6 +60,12 @@ import {
   Warehouse,
   AlertOctagon,
   Minus,
+  Sparkles,
+  Target,
+  UserCheck,
+  Megaphone,
+  PackageSearch,
+  Loader2,
 } from 'lucide-react'
 
 // ==================== TYPES ====================
@@ -357,7 +364,12 @@ export default function AdminDashboard() {
   const [stockAdjustReason, setStockAdjustReason] = useState('')
   const [stockAdjustCustomReason, setStockAdjustCustomReason] = useState('')
   const [stockAdjustSaving, setStockAdjustSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('ai-insights')
+
+  // --- AI Insights state ---
+  const [aiInsights, setAiInsights] = useState<Record<string, { content: string; cached: boolean; generatedAt: string }>>({})
+  const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({})
+  const [aiError, setAiError] = useState<Record<string, string>>({})
 
   // ==================== DATA FETCHING ====================
 
@@ -731,6 +743,33 @@ export default function AdminDashboard() {
     }
   }
 
+  // ==================== AI INSIGHTS HANDLER ====================
+
+  const generateAiInsight = async (insightType: string) => {
+    setAiLoading(prev => ({ ...prev, [insightType]: true }))
+    setAiError(prev => ({ ...prev, [insightType]: '' }))
+    try {
+      const res = await fetch('/api/ai-insights', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ type: insightType }),
+      })
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || 'Failed to generate insights')
+      }
+      const data = await res.json()
+      setAiInsights(prev => ({ ...prev, [insightType]: { content: data.content, cached: data.cached, generatedAt: data.generatedAt } }))
+    } catch (err) {
+      setAiError(prev => ({ ...prev, [insightType]: err instanceof Error ? err.message : 'An error occurred' }))
+    } finally {
+      setAiLoading(prev => ({ ...prev, [insightType]: false }))
+    }
+  }
+
   const refreshAll = () => {
     fetchDashboard()
     fetchOrders()
@@ -851,6 +890,13 @@ export default function AdminDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="bg-white border border-gray-200 p-1 h-auto flex-wrap gap-1 rounded-xl">
             <TabsTrigger
+              value="ai-insights"
+              className="rounded-lg data-[state=active]:bg-[#002B1B] data-[state=active]:text-white gap-1.5 text-sm"
+            >
+              <Sparkles className="w-4 h-4" />
+              AI Insights
+            </TabsTrigger>
+            <TabsTrigger
               value="overview"
               className="rounded-lg data-[state=active]:bg-[#002B1B] data-[state=active]:text-white gap-1.5 text-sm"
             >
@@ -879,6 +925,18 @@ export default function AdminDashboard() {
               Analytics
             </TabsTrigger>
           </TabsList>
+
+          {/* ============================================================ */}
+          {/* TAB 0: AI INSIGHTS                                           */}
+          {/* ============================================================ */}
+          <TabsContent value="ai-insights" className="space-y-6">
+            <AiInsightsPanel
+              aiInsights={aiInsights}
+              aiLoading={aiLoading}
+              aiError={aiError}
+              onGenerate={generateAiInsight}
+            />
+          </TabsContent>
 
           {/* ============================================================ */}
           {/* TAB 1: OVERVIEW                                              */}

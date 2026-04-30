@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useAppStore, useRecentlyViewedStore, type Product, type Category } from '@/lib/store'
 import ProductCard from '@/components/ui/ProductCard'
 import { ArrowRight, Shield, RotateCcw, Award, CreditCard, Package, Users, Star, TrendingUp, Gift, Zap, Clock, Trash2, Quote, MapPin, Timer, Flame } from 'lucide-react'
+import { useLanguageStore, translations } from '@/lib/language-store'
 
 function parseImages(images: string | null | undefined): string[] {
   if (!images) return []
@@ -109,6 +110,8 @@ function getDefaultEmoji(index: number) {
 export default function HomePage() {
   const { navigate } = useAppStore()
   const recentlyViewedStore = useRecentlyViewedStore()
+  const { language } = useLanguageStore()
+  const t = (key: string) => translations[language][key] || key
   const [categories, setCategories] = useState<Category[]>([])
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
   const [dealProduct, setDealProduct] = useState<Product | null>(null)
@@ -219,7 +222,7 @@ export default function HomePage() {
             transition={{ duration: 0.6 }}
           >
             <Badge className="mb-4 bg-[#FCD116]/20 text-[#C59F00] border-[#FCD116]/30 px-3 py-1 text-sm">
-              🔥 Hot Deals Daily
+              {t('home.heroBadge')}
             </Badge>
           </motion.div>
           <motion.h1
@@ -228,8 +231,8 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Premium Refurbished Electronics at{' '}
-            <span className="text-[#C59F00]">Unbeatable Prices</span>
+            {t('home.heroTitle1')}{' '}
+            <span className="text-[#C59F00]">{t('home.heroTitleHighlight')}</span>
           </motion.h1>
           <motion.p
             className="mt-4 text-gray-300 text-base md:text-lg max-w-2xl"
@@ -237,8 +240,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Save up to 70% on certified refurbished laptops, phones, tablets, and more.
-            Every device is inspected, tested, and backed by our 90-day warranty.
+            {t('home.heroDesc')}
           </motion.p>
           <motion.div
             className="mt-8 flex flex-col sm:flex-row gap-4"
@@ -251,7 +253,7 @@ export default function HomePage() {
               className="bg-[#FCD116] hover:bg-[#D4AA00] text-white rounded-full px-8 h-12 text-base font-semibold"
               onClick={() => navigate('products')}
             >
-              Shop Now
+              {t('home.shopNow')}
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
             <Button
@@ -260,7 +262,7 @@ export default function HomePage() {
               className="border-white/30 text-white hover:bg-white/10 rounded-full px-8 h-12 text-base"
               onClick={() => navigate('products', { categoryId: categories[0]?.id })}
             >
-              Browse Categories
+              {t('home.browseCategories')}
             </Button>
           </motion.div>
         </div>
@@ -276,10 +278,10 @@ export default function HomePage() {
             transition={{ duration: 0.5, delay: 0.4 }}
           >
             {[
-              { icon: Shield, label: '90-Day Warranty', slug: 'shipping' },
-              { icon: RotateCcw, label: 'Free Returns', slug: 'shipping' },
-              { icon: Award, label: 'Certified Quality', slug: 'about' },
-              { icon: CreditCard, label: 'Secure Payment', slug: 'payments' },
+              { icon: Shield, label: t('home.warranty90'), slug: 'shipping' },
+              { icon: RotateCcw, label: t('home.freeReturns'), slug: 'shipping' },
+              { icon: Award, label: t('home.certifiedQuality'), slug: 'about' },
+              { icon: CreditCard, label: t('home.securePayment'), slug: 'payments' },
             ].map((item) => (
               <button
                 key={item.label}
@@ -327,12 +329,12 @@ export default function HomePage() {
             >
               <div className="flex items-center gap-2 bg-red-500/20 border border-red-500/40 rounded-full px-4 py-1.5">
                 <Flame className="w-4 h-4 text-red-400" />
-                <span className="text-red-300 text-sm font-bold uppercase tracking-wide">Deal of the Day</span>
+                <span className="text-red-300 text-sm font-bold uppercase tracking-wide">{t('home.dealOfTheDay')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5 bg-black/40 border border-white/10 rounded-lg px-3 py-1.5">
                   <Timer className="w-3.5 h-3.5 text-red-400" />
-                  <span className="text-red-300 text-xs font-bold">Ends in</span>
+                  <span className="text-red-300 text-xs font-bold">{t('home.endsIn')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   {[
@@ -377,7 +379,7 @@ export default function HomePage() {
                       <span className="text-2xl font-black">
                         -{Math.round(((dealProduct.originalPrice - dealProduct.price) / dealProduct.originalPrice) * 100)}%
                       </span>
-                      <p className="text-[10px] uppercase tracking-wider opacity-90">Save Today</p>
+                      <p className="text-[10px] uppercase tracking-wider opacity-90">{t('home.saveToday')}</p>
                     </div>
                   )}
                   {/* Condition badge */}
@@ -426,7 +428,7 @@ export default function HomePage() {
                           style={{ width: `${(dealProduct.stock / 10) * 100}%` }}
                         />
                       </div>
-                      <span className="font-medium whitespace-nowrap">Only {dealProduct.stock} left!</span>
+                      <span className="font-medium whitespace-nowrap">{t('home.onlyLeft', { count: dealProduct.stock })}</span>
                     </div>
                   )}
 
@@ -436,7 +438,7 @@ export default function HomePage() {
                       className="bg-[#FCD116] hover:bg-[#D4AA00] text-[#1a1a1a] rounded-full px-8 h-12 text-base font-bold shadow-lg shadow-yellow-500/20"
                       onClick={() => navigate('product-detail', { productId: dealProduct.id })}
                     >
-                      Grab This Deal <ArrowRight className="ml-2 w-4 h-4" />
+                      {t('home.grabThisDeal')} <ArrowRight className="ml-2 w-4 h-4" />
                     </Button>
                     <Button
                       size="lg"
@@ -444,7 +446,7 @@ export default function HomePage() {
                       className="border-white/20 text-white hover:bg-white/10 rounded-full px-6 h-12 text-base"
                       onClick={() => navigate('products')}
                     >
-                      See More Deals
+                      {t('home.seeMoreDeals')}
                     </Button>
                   </div>
                 </div>
@@ -468,8 +470,8 @@ export default function HomePage() {
                 <Flame className="w-5 h-5 text-[#1a1a1a]" />
               </div>
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Featured Products</h2>
-                <p className="text-sm text-gray-500 mt-0.5">Handpicked just for you</p>
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900">{t('home.featuredProducts')}</h2>
+                <p className="text-sm text-gray-500 mt-0.5">{t('home.handpickedForYou')}</p>
               </div>
             </div>
             <Button
