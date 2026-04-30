@@ -20,6 +20,7 @@ import {
 import { useAppStore, useCartStore, useUserStore, type Product, type Review } from '@/lib/store'
 import StarRating from '@/components/ui/StarRating'
 import ProductCard from '@/components/ui/ProductCard'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import { toast } from '@/hooks/use-toast'
 import {
   ArrowLeft,
@@ -318,14 +319,12 @@ export default function ProductDetailPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
-      {/* Back button */}
-      <button
-        onClick={() => navigate('products')}
-        className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#C59F00] transition-colors mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Products
-      </button>
+      <Breadcrumbs
+        items={[
+          { label: product.category?.name || 'Products', action: () => navigate('products') },
+          { label: product.name },
+        ]}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
         {/* Product Image */}

@@ -358,6 +358,21 @@ export default function Header() {
                   </SheetTitle>
                 </SheetHeader>
                 <div className="overflow-y-auto flex-1 py-2">
+                  {/* Mobile Search */}
+                  <div className="px-4 py-2">
+                    <form onSubmit={(e) => { e.preventDefault(); if (searchQuery.trim()) { setMobileMenuOpen(false); navigate('products') } }} className="flex">
+                      <Input
+                        type="text"
+                        placeholder="Search products..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="h-10 rounded-r-none border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-[#FCD116]/20 focus-visible:border-[#FCD116]"
+                      />
+                      <Button type="submit" className="h-10 px-4 bg-[#FCD116] hover:bg-[#D4AA00] text-[#1a1a1a] rounded-l-none">
+                        <Search className="w-4 h-4" />
+                      </Button>
+                    </form>
+                  </div>
                   {user ? (
                     <div className="px-4 py-3 bg-gray-50 border-b">
                       <p className="font-medium text-sm">{user.name}</p>

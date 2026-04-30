@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/sheet'
 import { useAppStore, type Product, type Category } from '@/lib/store'
 import ProductCard from '@/components/ui/ProductCard'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import {
   SlidersHorizontal,
   X,
@@ -208,6 +209,8 @@ export default function ProductListPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
+      <Breadcrumbs items={[{ label: 'Products' }]} />
+
       {/* Breadcrumb & Title */}
       <div className="mb-6">
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">

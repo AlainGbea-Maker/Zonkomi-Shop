@@ -114,6 +114,8 @@ export default function HomePage() {
   const [dealProduct, setDealProduct] = useState<Product | null>(null)
   const [recentlyViewedProducts, setRecentlyViewedProducts] = useState<Product[]>([])
   const [newArrivals, setNewArrivals] = useState<Product[]>([])
+  const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 })
+  const [siteStats, setSiteStats] = useState<{ products: number; customers: number; orders: number; avgRating: string } | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -147,6 +149,12 @@ export default function HomePage() {
           }
         }
         setDealProduct(deal || allProducts[0] || null)
+
+        // Fetch real site stats
+        fetch('/api/stats')
+          .then((r) => r.json())
+          .then((data) => setSiteStats(data))
+          .catch(() => {})
       } catch {
         // silently fail
       } finally {
@@ -172,6 +180,29 @@ export default function HomePage() {
       setRecentlyViewedProducts(products)
     })
   }, [recentlyViewedStore.items])
+
+  // Deal countdown timer - counts down to midnight GMT
+  useEffect(() => {
+    const getEndOfDay = () => {
+      const now = new Date()
+      const end = new Date(now)
+      end.setUTCHours(23, 59, 59, 999)
+      return end.getTime() - now.getTime()
+    }
+
+    let remaining = getEndOfDay()
+    const update = () => {
+      remaining -= 1000
+      if (remaining <= 0) remaining = getEndOfDay()
+      const h = Math.floor(remaining / 3600000)
+      const m = Math.floor((remaining % 3600000) / 60000)
+      const s = Math.floor((remaining % 60000) / 1000)
+      setTimeLeft({ hours: h, minutes: m, seconds: s })
+    }
+    update()
+    const interval = setInterval(update, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="min-h-screen">
@@ -298,9 +329,25 @@ export default function HomePage() {
                 <Flame className="w-4 h-4 text-red-400" />
                 <span className="text-red-300 text-sm font-bold uppercase tracking-wide">Deal of the Day</span>
               </div>
-              <div className="flex items-center gap-1.5 text-gray-400 text-sm">
-                <Timer className="w-3.5 h-3.5" />
-                <span>Limited time only</span>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 bg-black/40 border border-white/10 rounded-lg px-3 py-1.5">
+                  <Timer className="w-3.5 h-3.5 text-red-400" />
+                  <span className="text-red-300 text-xs font-bold">Ends in</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {[
+                    { value: timeLeft.hours, label: 'h' },
+                    { value: timeLeft.minutes, label: 'm' },
+                    { value: timeLeft.seconds, label: 's' },
+                  ].map((unit) => (
+                    <span key={unit.label} className="flex items-center gap-0.5">
+                      <span className="bg-red-500/20 border border-red-500/30 text-red-300 font-mono font-bold text-sm px-2 py-1 rounded-md min-w-[2rem] text-center">
+                        {String(unit.value).padStart(2, '0')}
+                      </span>
+                      <span className="text-red-400/60 text-xs font-bold mr-1">{unit.label}</span>
+                    </span>
+                  ))}
+                </div>
               </div>
             </motion.div>
 
@@ -784,10 +831,10 @@ export default function HomePage() {
             viewport={{ once: true }}
           >
             {[
-              { icon: Package, value: '5,000+', label: 'Products', action: () => navigate('products') },
-              { icon: Users, value: '50,000+', label: 'Happy Customers', action: () => navigate('info', { infoSlug: 'about' }) },
-              { icon: Star, value: '4.5', label: 'Average Rating', action: () => navigate('products') },
-              { icon: TrendingUp, value: '50,000+', label: 'Orders Shipped', action: () => navigate('info', { infoSlug: 'about' }) },
+              { icon: Package, value: siteStats ? siteStats.products.toLocaleString() : '...', label: 'Products', action: () => navigate('products') },
+              { icon: Users, value: siteStats ? `${siteStats.customers.toLocaleString()}+` : '...', label: 'Happy Customers', action: () => navigate('info', { infoSlug: 'about' }) },
+              { icon: Star, value: siteStats ? siteStats.avgRating : '...', label: 'Average Rating', action: () => navigate('products') },
+              { icon: TrendingUp, value: siteStats ? `${siteStats.orders.toLocaleString()}+` : '...', label: 'Orders Shipped', action: () => navigate('info', { infoSlug: 'about' }) },
             ].map((stat) => (
               <motion.div
                 key={stat.label}

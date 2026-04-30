@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useAppStore } from '@/lib/store'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import {
   ArrowLeft,
   ArrowRight,
@@ -793,6 +794,11 @@ export default function ContentPage() {
             </div>
           </motion.div>
         </div>
+      </div>
+
+      {/* Breadcrumbs */}
+      <div className="max-w-4xl mx-auto px-4 pt-6">
+        <Breadcrumbs items={[{ label: content.title }]} />
       </div>
 
       {/* Content */}

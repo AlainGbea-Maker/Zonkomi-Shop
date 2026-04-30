@@ -17,6 +17,7 @@ import LoginPage from '@/components/pages/LoginPage'
 import AdminDashboard from '@/components/pages/AdminDashboard'
 import SpinWheel from '@/components/SpinWheel'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import BackToTop from '@/components/ui/BackToTop'
 import ContentPage from '@/components/pages/ContentPage'
 import WishlistPage from '@/components/pages/WishlistPage'
 
@@ -83,6 +84,7 @@ export default function Home() {
       <Footer />
       {mounted && <SpinWheel />}
       {mounted && <WhatsAppButton />}
+      {mounted && <BackToTop />}
     </div>
   )
 }

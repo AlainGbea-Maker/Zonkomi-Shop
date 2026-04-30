@@ -171,6 +171,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                       src={realImg}
                       alt={product.name}
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   )
                 }
@@ -294,6 +295,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                             src={realImg}
                             alt={qvProduct.name}
                             className="w-full h-full object-cover rounded-xl"
+                            loading="lazy"
                           />
                         )
                       }
