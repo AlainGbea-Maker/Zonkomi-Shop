@@ -273,8 +273,8 @@ function ProductImage({ src, className = '' }: { src: string; className?: string
       </div>
     )
   }
-  if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) {
-    return <img src={src} alt="" className={`object-cover ${className}`} />
+  if (isImageUrl(src)) {
+    return <img src={src} alt="" className={`object-cover ${className}`} loading="lazy" />
   }
   return (
     <div className={`flex items-center justify-center bg-gray-100 text-3xl ${className}`}>
@@ -283,13 +283,27 @@ function ProductImage({ src, className = '' }: { src: string; className?: string
   )
 }
 
-function parseImages(images: string): string[] {
+function parseImages(images: string | null | undefined): string[] {
+  if (!images) return []
   try {
-    const parsed = JSON.parse(images || '[]')
-    return Array.isArray(parsed) ? parsed : []
+    const parsed = JSON.parse(images)
+    if (Array.isArray(parsed)) return parsed
+    if (typeof parsed === 'string') return [parsed]
+    return []
   } catch {
+    // If not valid JSON, treat as a single image path
+    if (typeof images === 'string' && (images.startsWith('/') || images.startsWith('http'))) return [images]
     return []
   }
+}
+
+function isImageUrl(str: string): boolean {
+  return str.startsWith('/images/') || str.startsWith('/uploads/') || str.startsWith('http://') || str.startsWith('https://') || str.startsWith('data:')
+}
+
+function getFirstImageUrl(images: string | null | undefined): string {
+  const parsed = parseImages(images)
+  return parsed.find(isImageUrl) || ''
 }
 
 // ==================== MAIN COMPONENT ====================
@@ -999,7 +1013,7 @@ export default function AdminDashboard() {
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                         {topSellingProducts.map((product, i) => {
-                          const images = parseImages(product.image)
+                          const imgSrc = getFirstImageUrl(product.image)
                           return (
                             <motion.div
                               key={product.id}
@@ -1013,7 +1027,7 @@ export default function AdminDashboard() {
                                   {i + 1}
                                 </span>
                                 <ProductImage
-                                  src={images[0] || ''}
+                                  src={imgSrc}
                                   className="w-14 h-14 rounded-xl bg-gray-100"
                                 />
                               </div>
@@ -1412,8 +1426,7 @@ export default function AdminDashboard() {
                 ) : (
                   <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
                     {products.map((product) => {
-                      const images = parseImages(product.images)
-                      const thumbnail = images[0] || ''
+                      const thumbnail = getFirstImageUrl(product.images)
                       const isEditingStock = editingStockId === product.id
 
                       return (
