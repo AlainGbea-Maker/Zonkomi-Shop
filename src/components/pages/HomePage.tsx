@@ -113,19 +113,23 @@ export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
   const [dealProduct, setDealProduct] = useState<Product | null>(null)
   const [recentlyViewedProducts, setRecentlyViewedProducts] = useState<Product[]>([])
+  const [newArrivals, setNewArrivals] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [catRes, prodRes] = await Promise.all([
+        const [catRes, prodRes, newArrRes] = await Promise.all([
           fetch('/api/categories'),
           fetch('/api/products?featured=true&limit=8'),
+          fetch('/api/products?limit=4&sortBy=newest'),
         ])
         const catData = await catRes.json()
         const prodData = await prodRes.json()
+        const newArrData = await newArrRes.json()
         setCategories(catData || [])
         setFeaturedProducts(prodData?.products || prodData || [])
+        setNewArrivals(newArrData?.products || newArrData || [])
 
         // Find deal of the day (highest discount)
         const allRes = await fetch('/api/products?limit=50')
@@ -241,15 +245,19 @@ export default function HomePage() {
             transition={{ duration: 0.5, delay: 0.4 }}
           >
             {[
-              { icon: Shield, label: '90-Day Warranty' },
-              { icon: RotateCcw, label: 'Free Returns' },
-              { icon: Award, label: 'Certified Quality' },
-              { icon: CreditCard, label: 'Secure Payment' },
+              { icon: Shield, label: '90-Day Warranty', slug: 'shipping' },
+              { icon: RotateCcw, label: 'Free Returns', slug: 'shipping' },
+              { icon: Award, label: 'Certified Quality', slug: 'about' },
+              { icon: CreditCard, label: 'Secure Payment', slug: 'payments' },
             ].map((item) => (
-              <div key={item.label} className="flex items-center gap-1.5 text-sm">
-                <item.icon className="w-4 h-4 text-[#C59F00]" />
-                <span className="text-gray-600 font-medium">{item.label}</span>
-              </div>
+              <button
+                key={item.label}
+                onClick={() => navigate('info', { infoSlug: item.slug })}
+                className="flex items-center gap-1.5 text-sm hover:opacity-80 transition-opacity cursor-pointer group/badge"
+              >
+                <item.icon className="w-4 h-4 text-[#C59F00] group-hover/badge:scale-110 transition-transform" />
+                <span className="text-gray-600 font-medium group-hover/badge:text-[#C59F00] transition-colors">{item.label}</span>
+              </button>
             ))}
           </motion.div>
         </div>
@@ -454,6 +462,50 @@ export default function HomePage() {
           )}
         </div>
       </section>
+
+      {/* ===== NEW ARRIVALS ===== */}
+      {newArrivals.length > 0 && (
+        <section className="bg-gradient-to-br from-[#002B1B] via-[#003D26] to-[#002B1B] py-10 md:py-14">
+          <div className="max-w-7xl mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="flex items-center justify-between mb-8"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#CE1126] to-[#a80d1e] flex items-center justify-center shadow-md">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-white">New Arrivals</h2>
+                  <p className="text-sm text-gray-400 mt-0.5">Fresh stock, just landed</p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                className="border-white/20 text-white hover:bg-white/10 rounded-full"
+                onClick={() => { useAppStore.getState().setSortBy('newest'); navigate('products') }}
+              >
+                View All <ArrowRight className="ml-1 w-4 h-4" />
+              </Button>
+            </motion.div>
+            <motion.div
+              className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
+              variants={stagger}
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+            >
+              {newArrivals.slice(0, 4).map((product) => (
+                <motion.div key={product.id} variants={fadeInUp}>
+                  <ProductCard product={product} />
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* Categories */}
       <section className="bg-gray-50 py-10 md:py-14">
@@ -732,19 +784,22 @@ export default function HomePage() {
             viewport={{ once: true }}
           >
             {[
-              { icon: Package, value: '5,000+', label: 'Products' },
-              { icon: Users, value: '50,000+', label: 'Happy Customers' },
-              { icon: Star, value: '4.5', label: 'Average Rating' },
-              { icon: TrendingUp, value: '50,000+', label: 'Orders Shipped' },
+              { icon: Package, value: '5,000+', label: 'Products', action: () => navigate('products') },
+              { icon: Users, value: '50,000+', label: 'Happy Customers', action: () => navigate('info', { infoSlug: 'about' }) },
+              { icon: Star, value: '4.5', label: 'Average Rating', action: () => navigate('products') },
+              { icon: TrendingUp, value: '50,000+', label: 'Orders Shipped', action: () => navigate('info', { infoSlug: 'about' }) },
             ].map((stat) => (
               <motion.div
                 key={stat.label}
                 variants={fadeInUp}
                 className="text-center"
               >
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[#FCD116]/20 flex items-center justify-center">
-                  <stat.icon className="w-6 h-6 text-[#C59F00]" />
-                </div>
+                <button
+                  onClick={stat.action}
+                  className="w-12 h-12 mx-auto mb-3 rounded-full bg-[#FCD116]/20 flex items-center justify-center hover:bg-[#FCD116]/30 transition-colors cursor-pointer group/stat"
+                >
+                  <stat.icon className="w-6 h-6 text-[#C59F00] group-hover/stat:scale-110 transition-transform" />
+                </button>
                 <p className="text-2xl md:text-3xl font-bold text-white">{stat.value}</p>
                 <p className="text-sm text-gray-400 mt-1">{stat.label}</p>
               </motion.div>

@@ -128,8 +128,18 @@ export default function Header() {
             Free shipping on orders over GH₵ 500
           </span>
           <div className="flex items-center gap-4 text-gray-300">
-            <a href="#" className="hover:text-white transition-colors">Help</a>
-            <a href="#" className="hover:text-white transition-colors">Track Order</a>
+            <button
+              onClick={() => navigate('info', { infoSlug: 'help' })}
+              className="hover:text-white transition-colors"
+            >
+              Help
+            </button>
+            <button
+              onClick={() => user ? navigate('orders') : navigate('login')}
+              className="hover:text-white transition-colors"
+            >
+              Track Order
+            </button>
           </div>
         </div>
       </div>
