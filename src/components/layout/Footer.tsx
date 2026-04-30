@@ -6,7 +6,7 @@ import { toast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ArrowUp } from 'lucide-react'
-import { useLanguageStore, translations } from '@/lib/language-store'
+import { useT } from '@/lib/language-store'
 
 function FooterLink({ slug, children }: { slug?: string; action?: () => void; children: React.ReactNode }) {
   const { navigate } = useAppStore()
@@ -46,8 +46,7 @@ function FooterNavLink({ onClick, children }: { onClick: () => void; children: R
 export default function Footer() {
   const { navigate } = useAppStore()
   const [email, setEmail] = useState('')
-  const { language } = useLanguageStore()
-  const t = (key: string) => translations[language][key] || key
+  const t = useT()
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })

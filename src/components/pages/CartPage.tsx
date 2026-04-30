@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useCartStore, useAppStore, type Product } from '@/lib/store'
+import { useT } from '@/lib/language-store'
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Shield, Truck, AlertTriangle, RefreshCw, Gift } from 'lucide-react'
 
 function parseImages(images: string | null | undefined): string[] {
@@ -53,6 +54,7 @@ function ProductThumbnail({ images, name }: { images: string | null | undefined;
 }
 
 export default function CartPage() {
+  const t = useT()
   const {
     items,
     removeItem,
@@ -144,16 +146,15 @@ export default function CartPage() {
           <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gray-100 flex items-center justify-center">
             <ShoppingBag className="w-12 h-12 text-gray-400" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Your Cart is Empty</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('cart.empty')}</h1>
           <p className="text-gray-500 mb-8">
-            Looks like you haven&apos;t added any items to your cart yet.
-            Start shopping to find great deals!
+            {t('cart.emptyDesc')}
           </p>
           <Button
             className="bg-[#FCD116] hover:bg-[#D4AA00] text-white rounded-full px-8"
             onClick={() => navigate('products')}
           >
-            Continue Shopping
+            {t('cart.continueShopping')}
             <ArrowRight className="ml-2 w-4 h-4" />
           </Button>
         </motion.div>
@@ -172,7 +173,7 @@ export default function CartPage() {
         >
           <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
           <p className="text-sm text-amber-800">
-            {removedIds.length} {removedIds.length === 1 ? 'item' : 'items'} {removedIds.length === 1 ? 'was' : 'were'} removed from your cart because {removedIds.length === 1 ? 'it is' : 'they are'} no longer available.
+            {removedIds.length} {removedIds.length === 1 ? t('cart.item') : t('cart.items')} {removedIds.length === 1 ? 'was' : 'were'} removed from your cart because {removedIds.length === 1 ? 'it is' : 'they are'} no longer available.
           </p>
           <button onClick={() => setRemovedIds([])} className="text-amber-600 hover:text-amber-800 ml-auto flex-shrink-0">
             ×
@@ -182,14 +183,14 @@ export default function CartPage() {
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Shopping Cart</h1>
-          <p className="text-sm text-gray-500 mt-1">{itemCount} {itemCount === 1 ? 'item' : 'items'}</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('cart.shoppingCart')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{itemCount} {itemCount === 1 ? t('cart.item') : t('cart.items')}</p>
         </div>
         <div className="flex items-center gap-2">
           {syncing && (
             <span className="text-xs text-gray-400 flex items-center gap-1">
               <RefreshCw className="w-3 h-3 animate-spin" />
-              Syncing...
+              {t('cart.syncing')}
             </span>
           )}
           <Button
@@ -199,7 +200,7 @@ export default function CartPage() {
             onClick={clearCart}
           >
             <Trash2 className="w-4 h-4 mr-1" />
-            Clear Cart
+            {t('cart.clearCart')}
           </Button>
         </div>
       </div>
@@ -218,9 +219,9 @@ export default function CartPage() {
               <Gift className="w-6 h-6 text-[#FCD116]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-sm">🎁 Unlock Spin & Win!</p>
+              <p className="font-bold text-sm">{t('cart.unlockSpin')}</p>
               <p className="text-xs text-gray-300 mt-0.5">
-                Add <span className="text-[#FCD116] font-bold">GH₵{amountNeededForSpin.toFixed(2)}</span> more for a chance to win up to <span className="text-[#FCD116] font-bold">20% off!</span>
+                {t('cart.addMore', { amount: `GH₵${amountNeededForSpin.toFixed(2)}` })}
               </p>
               <div className="mt-2 w-full bg-white/20 rounded-full h-2 max-w-xs">
                 <div
@@ -234,7 +235,7 @@ export default function CartPage() {
               onClick={() => navigate('products')}
               className="px-4 py-2 bg-[#FCD116] hover:bg-[#D4AA00] text-[#002B1B] rounded-full text-xs font-bold transition-colors flex-shrink-0"
             >
-              Shop More
+              {t('cart.shopMore')}
             </button>
           </div>
         </motion.div>
@@ -253,8 +254,8 @@ export default function CartPage() {
               <Gift className="w-6 h-6 text-[#002B1B]" />
             </div>
             <div className="flex-1">
-              <p className="font-bold text-sm">🎉 You qualify for Spin & Win!</p>
-              <p className="text-xs text-[#002B1B]/70 mt-0.5">Click the gift button at the bottom-right to spin for exclusive discounts!</p>
+              <p className="font-bold text-sm">{t('cart.qualifySpin')}</p>
+              <p className="text-xs text-[#002B1B]/70 mt-0.5">{t('cart.spinInstructions')}</p>
             </div>
           </div>
         </motion.div>
@@ -348,7 +349,7 @@ export default function CartPage() {
                                 </button>
                               </div>
                               <span className="text-xs text-gray-500 hidden sm:block">
-                                Max: {item.product.stock}
+                                {t('product.qty')} {item.product.stock}
                               </span>
                             </div>
                             <div className="text-right">
@@ -377,7 +378,7 @@ export default function CartPage() {
             onClick={() => navigate('products')}
           >
             <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
-            Continue Shopping
+            {t('cart.continueShopping')}
           </Button>
         </div>
 
@@ -385,22 +386,22 @@ export default function CartPage() {
         <div className="lg:col-span-1">
           <Card className="sticky top-40 border-gray-200">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Order Summary</CardTitle>
+              <CardTitle className="text-lg">{t('cart.orderSummary')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal ({itemCount} items)</span>
+                  <span className="text-gray-600">{t('cart.subtotal')} ({itemCount} {itemCount === 1 ? t('cart.item') : t('cart.items')})</span>
                   <span className="font-medium">GH₵{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Shipping</span>
+                  <span className="text-gray-600">{t('cart.shipping')}</span>
                   <span className={shipping === 0 ? 'text-green-600 font-medium' : 'font-medium'}>
-                    {shipping === 0 ? 'FREE' : `GH₵{shipping.toFixed(2)}`}
+                    {shipping === 0 ? t('cart.free') : `GH₵${shipping.toFixed(2)}`}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Estimated Tax</span>
+                  <span className="text-gray-600">{t('cart.estimatedTax')}</span>
                   <span className="font-medium">GH₵{tax.toFixed(2)}</span>
                 </div>
               </div>
@@ -409,7 +410,7 @@ export default function CartPage() {
               {subtotal < freeShippingThreshold && (
                 <div className="p-3 bg-yellow-50 rounded-lg">
                   <p className="text-xs text-yellow-700 mb-2">
-                    Add <span className="font-bold">GH₵{(freeShippingThreshold - subtotal).toFixed(2)}</span> more for free shipping!
+                    {t('cart.freeShippingProgress', { amount: `GH₵${(freeShippingThreshold - subtotal).toFixed(2)}` })}
                   </p>
                   <div className="w-full bg-yellow-200 rounded-full h-1.5">
                     <div
@@ -423,7 +424,7 @@ export default function CartPage() {
               <Separator />
 
               <div className="flex justify-between items-center">
-                <span className="text-lg font-bold text-gray-900">Total</span>
+                <span className="text-lg font-bold text-gray-900">{t('cart.total')}</span>
                 <span className="text-xl font-bold text-[#C59F00]">GH₵{total.toFixed(2)}</span>
               </div>
 
@@ -431,17 +432,17 @@ export default function CartPage() {
                 className="w-full bg-[#FCD116] hover:bg-[#D4AA00] text-white rounded-full h-12 font-semibold text-sm"
                 onClick={() => navigate('checkout')}
               >
-                Proceed to Checkout
+                {t('cart.proceedToCheckout')}
               </Button>
 
               <div className="flex items-center justify-center gap-4 text-xs text-gray-500 pt-2">
                 <div className="flex items-center gap-1">
                   <Shield className="w-3.5 h-3.5" />
-                  Secure
+                  {t('cart.secure')}
                 </div>
                 <div className="flex items-center gap-1">
                   <Truck className="w-3.5 h-3.5" />
-                  Free Shipping GH₵ 500+
+                  {t('cart.freeShippingPlus')}
                 </div>
               </div>
             </CardContent>

@@ -2,12 +2,11 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowUp } from 'lucide-react'
-import { useLanguageStore, translations } from '@/lib/language-store'
+import { useT } from '@/lib/language-store'
 
 export default function BackToTop() {
   const [show, setShow] = useState(false)
-  const { language } = useLanguageStore()
-  const t = (key: string) => translations[language][key] || key
+  const t = useT()
 
   useEffect(() => {
     const handleScroll = () => setShow(window.scrollY > 400)

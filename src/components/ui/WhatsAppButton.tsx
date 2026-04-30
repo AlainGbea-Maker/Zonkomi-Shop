@@ -3,14 +3,13 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MessageCircle, X, Phone, Mail, HelpCircle } from 'lucide-react'
-import { useLanguageStore, translations } from '@/lib/language-store'
+import { useT } from '@/lib/language-store'
 
 export default function WhatsAppButton() {
   const [isOpen, setIsOpen] = useState(false)
+  const t = useT()
   const whatsappNumber = '233241234567'
-  const message = encodeURIComponent('Hello Zonkomi Shop! I need help with...')
-  const { language } = useLanguageStore()
-  const t = (key: string) => translations[language][key] || key
+  const message = encodeURIComponent(t('whatsapp.welcomeMessage'))
 
   return (
     <div className="fixed bottom-6 left-6 z-40 flex flex-col items-end gap-2">

@@ -18,6 +18,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { useAppStore, useWishlistStore, useCartStore, type Product } from '@/lib/store'
+import { useT } from '@/lib/language-store'
 import ProductCard from '@/components/ui/ProductCard'
 import { Heart, ShoppingCart, Trash2, ArrowRight } from 'lucide-react'
 
@@ -39,6 +40,7 @@ export default function WishlistPage() {
   const { navigate } = useAppStore()
   const { items, removeItem, clearAll } = useWishlistStore()
   const { addItem: addToCart } = useCartStore()
+  const t = useT()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -115,7 +117,7 @@ export default function WishlistPage() {
                 <Heart className="w-6 h-6 text-[#FCD116]" />
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white">My Wishlist</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-white">{t('wishlist.title')}</h1>
                 <p className="text-sm text-gray-300 mt-1">
                   {items.length === 0
                     ? 'No items saved yet'
@@ -132,7 +134,7 @@ export default function WishlistPage() {
                     className="text-gray-300 hover:text-red-400 hover:bg-white/10"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Clear All
+                    {t('wishlist.clearAll')}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -148,7 +150,7 @@ export default function WishlistPage() {
                       onClick={handleClearAll}
                       className="bg-red-500 hover:bg-red-600 text-white"
                     >
-                      Clear All
+                      {t('wishlist.clearAll')}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -172,16 +174,16 @@ export default function WishlistPage() {
               <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-6">
                 <Heart className="w-12 h-12 text-gray-300" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Your wishlist is empty</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">{t('wishlist.empty')}</h2>
               <p className="text-gray-500 mb-6 max-w-sm">
-                Start adding items you love to your wishlist. Click the heart icon on any product to save it here.
+                {t('wishlist.emptyDesc')}
               </p>
               <Button
                 size="lg"
                 className="bg-[#FCD116] hover:bg-[#D4AA00] text-[#1a1a1a] rounded-full px-8 h-12 font-semibold"
                 onClick={() => navigate('products')}
               >
-                Start Shopping
+                {t('wishlist.browseProducts')}
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </motion.div>

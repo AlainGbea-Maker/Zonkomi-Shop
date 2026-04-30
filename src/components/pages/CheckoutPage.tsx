@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { useCartStore, useAppStore, useUserStore } from '@/lib/store'
+import { useT } from '@/lib/language-store'
 import {
   ArrowLeft,
   ArrowRight,
@@ -67,12 +68,6 @@ function ProductThumb({ images, name }: { images: string | null | undefined; nam
     </div>
   )
 }
-
-const steps = [
-  { id: 1, label: 'Shipping', icon: MapPin },
-  { id: 2, label: 'Payment', icon: CreditCard },
-  { id: 3, label: 'Review', icon: ClipboardList },
-]
 
 const GHANA_REGIONS = [
   'Greater Accra',
@@ -157,12 +152,19 @@ interface ShippingInfo {
 }
 
 export default function CheckoutPage() {
+  const t = useT()
   const { items, getSubtotal, getTax, getShipping, getTotal, clearCart } = useCartStore()
   const { navigate } = useAppStore()
   const { user } = useUserStore()
   const [currentStep, setCurrentStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+
+  const steps = [
+    { id: 1, label: t('checkout.shipping'), icon: MapPin },
+    { id: 2, label: t('checkout.payment'), icon: CreditCard },
+    { id: 3, label: t('checkout.review'), icon: ClipboardList },
+  ]
 
   // Coupon state
   const [couponCode, setCouponCode] = useState('')
@@ -264,13 +266,13 @@ export default function CheckoutPage() {
         <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gray-100 flex items-center justify-center">
           <ShoppingBag className="w-12 h-12 text-gray-400" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Your Cart is Empty</h1>
-        <p className="text-gray-500 mb-6">Add items to your cart before checking out.</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('checkout.cartEmpty')}</h1>
+        <p className="text-gray-500 mb-6">{t('checkout.cartEmptyDesc')}</p>
         <Button
           className="bg-[#FCD116] hover:bg-[#D4AA00] text-white rounded-full px-8"
           onClick={() => navigate('products')}
         >
-          Browse Products
+          {t('checkout.browseProducts')}
         </Button>
       </div>
     )
@@ -436,10 +438,10 @@ export default function CheckoutPage() {
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#C59F00] transition-colors mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Cart
+        {t('checkout.backToCart')}
       </button>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Checkout</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('checkout.checkout')}</h1>
 
       {/* Progress Steps */}
       <div className="flex items-center justify-center mb-8">
@@ -495,21 +497,21 @@ export default function CheckoutPage() {
                   <CardContent className="p-6">
                     <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                       <MapPin className="w-5 h-5 text-[#C59F00]" />
-                      Delivery Information
+                      {t('checkout.deliveryInfo')}
                     </h2>
 
                     {/* Ghana flag badge */}
                     <div className="flex items-center gap-2 mb-5 p-3 bg-green-50 rounded-lg border border-green-200">
                       <span className="text-2xl">🇬🇭</span>
                       <div>
-                        <p className="text-sm font-semibold text-green-800">Delivering within Ghana</p>
-                        <p className="text-xs text-green-600">Free delivery on orders over GH₵ 500</p>
+                        <p className="text-sm font-semibold text-green-800">{t('checkout.deliveringGhana')}</p>
+                        <p className="text-xs text-green-600">{t('checkout.freeDeliveryOver')}</p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="md:col-span-2">
-                        <Label htmlFor="name">Full Name *</Label>
+                        <Label htmlFor="name">{t('checkout.fullName')}</Label>
                         <Input
                           id="name"
                           value={shipping.name}
@@ -519,7 +521,7 @@ export default function CheckoutPage() {
                         />
                       </div>
                       <div className="md:col-span-2">
-                        <Label htmlFor="phone">Phone Number * <span className="text-xs text-gray-400 font-normal">(required for delivery & mobile money)</span></Label>
+                        <Label htmlFor="phone">{t('checkout.phoneNumber')} <span className="text-xs text-gray-400 font-normal">(required for delivery &amp; mobile money)</span></Label>
                         <div className="relative mt-1">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">+233</span>
                           <Input
@@ -533,7 +535,7 @@ export default function CheckoutPage() {
                         </div>
                       </div>
                       <div className="md:col-span-2">
-                        <Label htmlFor="address">Delivery Address *</Label>
+                        <Label htmlFor="address">{t('checkout.deliveryAddress')}</Label>
                         <Input
                           id="address"
                           value={shipping.address}
@@ -543,7 +545,7 @@ export default function CheckoutPage() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="city">City / Town *</Label>
+                        <Label htmlFor="city">{t('checkout.cityTown')}</Label>
                         <Input
                           id="city"
                           value={shipping.city}
@@ -553,21 +555,21 @@ export default function CheckoutPage() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="region">Region *</Label>
+                        <Label htmlFor="region">{t('checkout.region')}</Label>
                         <select
                           id="region"
                           value={shipping.region}
                           onChange={(e) => setShipping({ ...shipping, region: e.target.value })}
                           className="mt-1 w-full h-9 rounded-md border border-gray-200 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#FCD116] focus:border-transparent"
                         >
-                          <option value="">Select Region</option>
+                          <option value="">{t('checkout.selectRegion')}</option>
                           {GHANA_REGIONS.map((r) => (
                             <option key={r} value={r}>{r}</option>
                           ))}
                         </select>
                       </div>
                       <div className="md:col-span-2">
-                        <Label htmlFor="additionalInfo">Additional Delivery Notes</Label>
+                        <Label htmlFor="additionalInfo">{t('checkout.additionalNotes')}</Label>
                         <Input
                           id="additionalInfo"
                           value={shipping.additionalInfo}
@@ -589,7 +591,7 @@ export default function CheckoutPage() {
                   <CardContent className="p-6">
                     <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                       <CreditCard className="w-5 h-5 text-[#C59F00]" />
-                      Payment Method
+                      {t('checkout.paymentMethod')}
                     </h2>
 
                     {/* Payment Options Grid */}
@@ -644,7 +646,7 @@ export default function CheckoutPage() {
                           </div>
 
                           <div>
-                            <Label htmlFor="momoPhone">Mobile Money Number *</Label>
+                            <Label htmlFor="momoPhone">{t('checkout.momoNumber')}</Label>
                             <div className="relative mt-1">
                               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium">+233</span>
                               <Input
@@ -662,8 +664,7 @@ export default function CheckoutPage() {
                             <p className="text-xs text-amber-800 flex items-start gap-2">
                               <span className="text-base flex-shrink-0">💡</span>
                               <span>
-                                An MoMo prompt will be sent to your phone to confirm payment.
-                                Please ensure you have sufficient balance and your MoMo is active.
+                                {t('checkout.momoPrompt')}
                               </span>
                             </p>
                           </div>
@@ -682,7 +683,7 @@ export default function CheckoutPage() {
                         <div className="p-4 bg-gray-50 rounded-xl border space-y-4">
                           <div className="flex items-center gap-3 mb-2">
                             <CreditCard className="w-5 h-5 text-[#C59F00]" />
-                            <h3 className="font-semibold text-gray-900 text-sm">Card Details</h3>
+                            <h3 className="font-semibold text-gray-900 text-sm">{t('checkout.cardDetails')}</h3>
                             <div className="flex gap-2 ml-auto">
                               <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-medium">VISA</Badge>
                               <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-medium">MASTERCARD</Badge>
@@ -716,7 +717,7 @@ export default function CheckoutPage() {
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div className="md:col-span-2">
-                              <Label htmlFor="cardName">Name on Card *</Label>
+                              <Label htmlFor="cardName">{t('checkout.nameOnCard')}</Label>
                               <Input
                                 id="cardName"
                                 value={cardInfo.cardName}
@@ -726,7 +727,7 @@ export default function CheckoutPage() {
                               />
                             </div>
                             <div className="md:col-span-2">
-                              <Label htmlFor="cardNumber">Card Number *</Label>
+                              <Label htmlFor="cardNumber">{t('checkout.cardNumber')}</Label>
                               <Input
                                 id="cardNumber"
                                 value={cardInfo.cardNumber}
@@ -737,7 +738,7 @@ export default function CheckoutPage() {
                               />
                             </div>
                             <div>
-                              <Label htmlFor="expiry">Expiry Date *</Label>
+                              <Label htmlFor="expiry">{t('checkout.expiryDate')}</Label>
                               <Input
                                 id="expiry"
                                 value={cardInfo.expiry}
@@ -748,7 +749,7 @@ export default function CheckoutPage() {
                               />
                             </div>
                             <div>
-                              <Label htmlFor="cvv">CVV *</Label>
+                              <Label htmlFor="cvv">{t('checkout.cvv')}</Label>
                               <Input
                                 id="cvv"
                                 value={cardInfo.cvv}
@@ -776,10 +777,9 @@ export default function CheckoutPage() {
                           <div className="flex items-start gap-3">
                             <Truck className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
                             <div>
-                              <h3 className="font-semibold text-green-800 text-sm">Cash on Delivery</h3>
+                              <h3 className="font-semibold text-green-800 text-sm">{t('checkout.cashOnDelivery')}</h3>
                               <p className="text-xs text-green-700 mt-1">
-                                Pay with cash when your order is delivered to your doorstep. Please have the exact amount ready.
-                                Our delivery partner will contact you before arrival.
+                                {t('checkout.cashDesc')}
                               </p>
                             </div>
                           </div>
@@ -790,7 +790,7 @@ export default function CheckoutPage() {
                     {/* Security badge */}
                     <div className="flex items-center gap-2 mt-4 text-xs text-gray-500">
                       <ShieldCheck className="w-4 h-4 text-green-500" />
-                      <span>Your payment information is secure and encrypted</span>
+                      <span>{t('checkout.paymentSecure')}</span>
                     </div>
 
                     {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
@@ -804,12 +804,12 @@ export default function CheckoutPage() {
                   <CardContent className="p-6 space-y-6">
                     <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                       <ClipboardList className="w-5 h-5 text-[#C59F00]" />
-                      Review Your Order
+                      {t('checkout.reviewOrder')}
                     </h2>
 
                     {/* Items */}
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900 mb-3">Items ({items.length})</h3>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('checkout.reviewOrder')} ({items.length})</h3>
                       <div className="space-y-3">
                         {items.map((item) => (
                           <div
@@ -819,7 +819,7 @@ export default function CheckoutPage() {
                             <ProductThumb images={item.product?.images} name={item.product?.name || ''} />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">{item.product?.name}</p>
-                              <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                              <p className="text-xs text-gray-500">{t('product.qty')} {item.quantity}</p>
                             </div>
                             <p className="text-sm font-bold text-[#C59F00]">
                               GH₵{((item.product?.price || 0) * item.quantity).toFixed(2)}
@@ -834,9 +834,9 @@ export default function CheckoutPage() {
                     {/* Shipping */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-semibold text-gray-900">Delivery Address</h3>
+                        <h3 className="text-sm font-semibold text-gray-900">{t('checkout.deliveryAddress')}</h3>
                         <Button variant="ghost" size="sm" className="text-xs text-[#C59F00]" onClick={() => setCurrentStep(1)}>
-                          Edit
+                          {t('checkout.edit')}
                         </Button>
                       </div>
                       <div className="text-sm text-gray-700 space-y-0.5">
@@ -855,9 +855,9 @@ export default function CheckoutPage() {
                     {/* Payment */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-semibold text-gray-900">Payment Method</h3>
+                        <h3 className="text-sm font-semibold text-gray-900">{t('checkout.paymentMethod')}</h3>
                         <Button variant="ghost" size="sm" className="text-xs text-[#C59F00]" onClick={() => setCurrentStep(2)}>
-                          Edit
+                          {t('checkout.edit')}
                         </Button>
                       </div>
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -884,14 +884,14 @@ export default function CheckoutPage() {
               className="rounded-full"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              {t('checkout.back')}
             </Button>
             {currentStep < 3 ? (
               <Button
                 className="bg-[#FCD116] hover:bg-[#D4AA00] text-white rounded-full"
                 onClick={handleNext}
               >
-                Continue
+                {t('checkout.continue')}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
@@ -903,12 +903,12 @@ export default function CheckoutPage() {
                 {submitting ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Processing Payment...
+                    {t('checkout.processingPayment')}
                   </>
                 ) : (
                   <>
                     <Package className="w-4 h-4 mr-2" />
-                    Place Order - GH₵{total.toFixed(2)}
+                    {t('checkout.placeOrder')} - GH₵{total.toFixed(2)}
                     {appliedCoupon && discount > 0 && (
                       <span className="ml-1 text-xs line-through text-gray-400">
                         GH₵{(total + discount).toFixed(2)}
@@ -925,7 +925,7 @@ export default function CheckoutPage() {
         <div className="lg:col-span-1">
           <Card className="sticky top-40 border-gray-200">
             <CardContent className="p-4 space-y-3">
-              <h3 className="font-semibold text-gray-900">Order Summary</h3>
+              <h3 className="font-semibold text-gray-900">{t('cart.orderSummary')}</h3>
 
               {/* Mini cart items */}
               <div className="space-y-2 pb-3 border-b">
@@ -946,28 +946,28 @@ export default function CheckoutPage() {
                   </div>
                 ))}
                 {items.length > 4 && (
-                  <p className="text-xs text-gray-400">+{items.length - 4} more items</p>
+                  <p className="text-xs text-gray-400">+{items.length - 4} {t('cart.items')}</p>
                 )}
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal</span>
+                  <span className="text-gray-600">{t('cart.subtotal')}</span>
                   <span className="font-medium">GH₵{subtotal.toFixed(2)}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-sm text-green-600">
                     <span className="flex items-center gap-1">
                       <Tag className="w-3 h-3" />
-                      Discount ({appliedCoupon?.name})
+                      {t('checkout.discount')} ({appliedCoupon?.name})
                     </span>
                     <span className="font-medium">-GH₵{discount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Shipping</span>
+                  <span className="text-gray-600">{t('cart.shipping')}</span>
                   <span className={finalShipping === 0 ? 'text-green-600 font-medium' : 'font-medium'}>
-                    {finalShipping === 0 ? 'FREE' : `GH₵${finalShipping.toFixed(2)}`}
+                    {finalShipping === 0 ? t('cart.free') : `GH₵${finalShipping.toFixed(2)}`}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -1014,7 +1014,7 @@ export default function CheckoutPage() {
               )}
               <Separator />
               <div className="flex justify-between">
-                <span className="font-bold text-gray-900">Total</span>
+                <span className="font-bold text-gray-900">{t('cart.total')}</span>
                 <span className="text-lg font-bold text-[#C59F00]">GH₵{total.toFixed(2)}</span>
               </div>
 

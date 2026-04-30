@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useAppStore } from '@/lib/store'
+import { useT } from '@/lib/language-store'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import {
   ArrowLeft,
@@ -750,6 +751,7 @@ const contentMap: Record<string, ContentSection> = {
 
 export default function ContentPage() {
   const { selectedInfoSlug, navigate } = useAppStore()
+  const t = useT()
 
   const slug = selectedInfoSlug || 'about'
   const content = contentMap[slug]
@@ -758,10 +760,10 @@ export default function ContentPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center">
         <HelpCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Page Not Found</h1>
-        <p className="text-gray-500 mb-6">The page you&apos;re looking for doesn&apos;t exist.</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('content.pageNotFound')}</h1>
+        <p className="text-gray-500 mb-6">{t('content.pageNotFoundDesc')}</p>
         <Button className="bg-[#FCD116] hover:bg-[#D4AA00] text-white rounded-full" onClick={() => navigate('home')}>
-          Go Home
+          {t('content.goHome')}
         </Button>
       </div>
     )
@@ -784,7 +786,7 @@ export default function ContentPage() {
               className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors mb-6"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to Home
+              {t('content.backToHome')}
             </button>
             <div className="flex items-center gap-3 mb-2">
               <div className="w-12 h-12 rounded-xl bg-[#FCD116]/20 flex items-center justify-center">

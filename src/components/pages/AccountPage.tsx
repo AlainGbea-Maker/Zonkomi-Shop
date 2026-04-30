@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useAppStore, useUserStore } from '@/lib/store'
+import { useT } from '@/lib/language-store'
 import {
   User,
   Package,
@@ -45,6 +46,7 @@ function formatGhanaPhone(phone: string | undefined | null): string {
 export default function AccountPage() {
   const { navigate } = useAppStore()
   const { user, logout } = useUserStore()
+  const t = useT()
 
   if (!user) {
     return (
@@ -58,7 +60,7 @@ export default function AccountPage() {
           className="bg-[#FCD116] hover:bg-[#D4AA00] text-white rounded-full px-8"
           onClick={() => navigate('login')}
         >
-          Sign In
+          {t('hello')}, {t('login.signIn')}
         </Button>
       </div>
     )
@@ -66,7 +68,7 @@ export default function AccountPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 md:py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">My Account</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('header.myAccountSection')}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* User Info */}
@@ -133,7 +135,7 @@ export default function AccountPage() {
                     <Package className="w-6 h-6 text-[#C59F00]" />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">My Orders</p>
+                    <p className="font-semibold text-gray-900">{t('orders.title')}</p>
                     <p className="text-sm text-gray-500">View order history and track shipments</p>
                   </div>
                 </div>
@@ -151,7 +153,7 @@ export default function AccountPage() {
                     <ShoppingCart className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">My Cart</p>
+                    <p className="font-semibold text-gray-900">{t('header.myCart')}</p>
                     <p className="text-sm text-gray-500">View and manage your shopping cart</p>
                   </div>
                 </div>
@@ -169,7 +171,7 @@ export default function AccountPage() {
                     <ShoppingCart className="w-6 h-6 text-emerald-600" />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">Continue Shopping</p>
+                    <p className="font-semibold text-gray-900">{t('wishlist.continueShopping')}</p>
                     <p className="text-sm text-gray-500">Browse our latest deals and products</p>
                   </div>
                 </div>
@@ -188,7 +190,7 @@ export default function AccountPage() {
               }}
             >
               <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
+              {t('header.signOut')}
             </Button>
           </motion.div>
         </div>

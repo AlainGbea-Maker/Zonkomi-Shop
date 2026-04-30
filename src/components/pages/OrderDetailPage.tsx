@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAppStore, type Order } from '@/lib/store'
+import { useT } from '@/lib/language-store'
 import {
   ArrowLeft,
   CheckCircle2,
@@ -110,6 +111,7 @@ function estimateStepDate(createdAt: string, stepIndex: number): string {
 
 export default function OrderDetailPage() {
   const { selectedOrderNumber, navigate } = useAppStore()
+  const t = useT()
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -297,7 +299,7 @@ export default function OrderDetailPage() {
           <Card>
             <CardContent className="p-6">
               <h2 className="text-sm font-semibold text-gray-900 mb-4">
-                Items ({order.orderItems?.length || 0})
+                {t('orders.items')} ({order.orderItems?.length || 0})
               </h2>
               <div className="space-y-3">
                 {order.orderItems?.map((item) => (
@@ -369,7 +371,7 @@ export default function OrderDetailPage() {
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Shipping</span>
                 <span className={order.shipping === 0 ? 'text-green-600' : ''}>
-                  {order.shipping === 0 ? 'FREE' : `GH₵{order.shipping.toFixed(2)}`}
+                  {order.shipping === 0 ? 'FREE' : `GH₵${order.shipping.toFixed(2)}`}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
@@ -378,7 +380,7 @@ export default function OrderDetailPage() {
               </div>
               <Separator />
               <div className="flex justify-between font-bold">
-                <span>Total</span>
+                <span>{t('orders.total')}</span>
                 <span className="text-[#C59F00]">GH₵{order.total.toFixed(2)}</span>
               </div>
             </CardContent>

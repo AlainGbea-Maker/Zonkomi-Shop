@@ -8,12 +8,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { useAppStore, useUserStore } from '@/lib/store'
+import { useT } from '@/lib/language-store'
 import { Shield } from 'lucide-react'
 import { ArrowLeft, Mail, User, Loader2, Zap, Phone, Lock } from 'lucide-react'
 
 export default function LoginPage() {
   const { navigate } = useAppStore()
   const { setUser } = useUserStore()
+  const t = useT()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -49,7 +51,7 @@ export default function LoginPage() {
       if (userData?.role === 'admin') navigate('admin')
       else navigate('home')
     } catch {
-      setError('Invalid email or password. Please try again.')
+      setError(t('login.invalidCredentials'))
     } finally {
       setLoading(false)
     }
@@ -117,7 +119,7 @@ export default function LoginPage() {
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#C59F00] transition-colors mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Home
+          {t('login.backToHome')}
         </button>
 
         {/* Logo */}
@@ -128,12 +130,12 @@ export default function LoginPage() {
             className="w-16 h-16 mx-auto mb-4 rounded-2xl object-contain"
           />
           <h1 className="text-2xl font-bold text-gray-900">
-            {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+            {mode === 'login' ? t('login.welcomeBack') : t('login.createAccount')}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
             {mode === 'login'
-              ? 'Sign in to your Zonkomi Shop account'
-              : 'Join Zonkomi Shop and start saving'}
+              ? t('login.signInDesc')
+              : t('login.signUpDesc')}
           </p>
         </div>
 
@@ -147,7 +149,7 @@ export default function LoginPage() {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Sign In
+            {t('login.signIn')}
           </button>
           <button
             onClick={() => { setMode('register'); setError('') }}
@@ -157,7 +159,7 @@ export default function LoginPage() {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Create Account
+            {t('login.createAcc')}
           </button>
         </div>
 
@@ -174,7 +176,7 @@ export default function LoginPage() {
                   className="space-y-4"
                 >
                   <div>
-                    <Label htmlFor="login-email">Email Address</Label>
+                    <Label htmlFor="login-email">{t('login.email')}</Label>
                     <div className="relative mt-1">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <Input
@@ -189,7 +191,7 @@ export default function LoginPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="login-password">Password</Label>
+                    <Label htmlFor="login-password">{t('login.password')}</Label>
                     <div className="relative mt-1">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <Input
@@ -213,13 +215,13 @@ export default function LoginPage() {
                     {loading ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     ) : null}
-                    Sign In
+                    {t('login.signIn')}
                   </Button>
 
                   <div className="relative my-4">
                     <Separator />
                     <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs text-gray-400">
-                      OR
+                      {t('login.or')}
                     </span>
                   </div>
 
@@ -231,7 +233,7 @@ export default function LoginPage() {
                     disabled={loading}
                   >
                     <Zap className="w-4 h-4 mr-2" />
-                    Sign in as Demo User
+                    {t('login.demoUser')}
                   </Button>
                 </motion.form>
               ) : (
@@ -244,7 +246,7 @@ export default function LoginPage() {
                   className="space-y-4"
                 >
                   <div>
-                    <Label htmlFor="reg-name">Full Name</Label>
+                    <Label htmlFor="reg-name">{t('login.fullName')}</Label>
                     <div className="relative mt-1">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <Input
@@ -258,7 +260,7 @@ export default function LoginPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="reg-email">Email Address</Label>
+                    <Label htmlFor="reg-email">{t('login.email')}</Label>
                     <div className="relative mt-1">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <Input
@@ -273,7 +275,7 @@ export default function LoginPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="reg-phone">Phone Number <span className="text-xs text-gray-400 font-normal">(optional)</span></Label>
+                    <Label htmlFor="reg-phone">{t('login.phone')} <span className="text-xs text-gray-400 font-normal">(optional)</span></Label>
                     <div className="relative mt-1">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <span className="absolute left-10 top-1/2 -translate-y-1/2 text-sm text-gray-500 font-medium border-r border-gray-200 pr-2">🇬🇭 +233</span>
@@ -299,13 +301,13 @@ export default function LoginPage() {
                     {loading ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     ) : null}
-                    Create Account
+                    {t('login.createAcc')}
                   </Button>
 
                   <div className="relative my-4">
                     <Separator />
                     <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs text-gray-400">
-                      OR
+                      {t('login.or')}
                     </span>
                   </div>
 
@@ -317,7 +319,7 @@ export default function LoginPage() {
                     disabled={loading}
                   >
                     <Zap className="w-4 h-4 mr-2" />
-                    Sign in as Demo User
+                    {t('login.demoUser')}
                   </Button>
                 </motion.form>
               )}
@@ -326,7 +328,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          By continuing, you agree to Zonkomi Shop&apos;s Terms of Service and Privacy Policy.
+          {t('login.termsAgree')}
         </p>
       </motion.div>
     </div>

@@ -5,10 +5,12 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useAppStore } from '@/lib/store'
+import { useT } from '@/lib/language-store'
 import { CheckCircle2, Package, ShoppingBag, MapPin, Phone, Copy, Check } from 'lucide-react'
 
 export default function OrderConfirmationPage() {
   const { selectedOrderNumber, navigate } = useAppStore()
+  const t = useT()
   const today = new Date()
   const fallbackNumber = `ZKS-${[today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('')}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`
   const orderNumber = selectedOrderNumber || fallbackNumber
@@ -129,7 +131,7 @@ export default function OrderConfirmationPage() {
             onClick={() => navigate('products')}
           >
             <ShoppingBag className="w-5 h-5 mr-2" />
-            Continue Shopping
+            {t('wishlist.continueShopping')}
           </Button>
           <Button
             variant="outline"
@@ -137,7 +139,7 @@ export default function OrderConfirmationPage() {
             onClick={() => navigate('orders')}
           >
             <Package className="w-5 h-5 mr-2" />
-            View My Orders
+            {t('orders.viewDetails')}
           </Button>
         </div>
       </motion.div>

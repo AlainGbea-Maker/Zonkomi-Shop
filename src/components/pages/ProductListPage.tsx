@@ -25,6 +25,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { useAppStore, type Product, type Category } from '@/lib/store'
+import { useT } from '@/lib/language-store'
 import ProductCard from '@/components/ui/ProductCard'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import {
@@ -51,6 +52,7 @@ export default function ProductListPage() {
     resetFilters,
   } = useAppStore()
 
+  const t = useT()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [totalProducts, setTotalProducts] = useState(0)
@@ -128,13 +130,13 @@ export default function ProductListPage() {
     <div className="space-y-6">
       {/* Category */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Category</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('products.category')}</h3>
         <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
           <button
             onClick={() => setSelectedCategory('all')}
             className={`w-full text-left text-sm px-2 py-1.5 rounded hover:bg-gray-100 transition-colors ${selectedCategory === 'all' ? 'text-[#C59F00] font-medium bg-yellow-50' : 'text-gray-700'}`}
           >
-            All Categories
+            {t('products.allCategories')}
           </button>
           {categories.map((cat) => (
             <button
@@ -155,7 +157,7 @@ export default function ProductListPage() {
 
       {/* Price Range */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Price Range</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('products.priceRange')}</h3>
         <Slider
           min={0}
           max={5000}
@@ -174,7 +176,7 @@ export default function ProductListPage() {
 
       {/* Condition */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Condition</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('products.condition')}</h3>
         <div className="space-y-2">
           {conditions.map((cond) => (
             <label
@@ -200,7 +202,7 @@ export default function ProductListPage() {
             className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
             onClick={clearFilters}
           >
-            Clear All Filters
+            {t('products.clearFilters')}
           </Button>
         </>
       )}
@@ -209,7 +211,7 @@ export default function ProductListPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
-      <Breadcrumbs items={[{ label: 'Products' }]} />
+      <Breadcrumbs items={[{ label: t('breadcrumbs.products') }]} />
 
       {/* Breadcrumb & Title */}
       <div className="mb-6">
@@ -218,25 +220,25 @@ export default function ProductListPage() {
             onClick={() => navigate('home')}
             className="hover:text-[#C59F00] transition-colors"
           >
-            Home
+            {t('products.home')}
           </button>
           <span>/</span>
           <span className="text-gray-900 font-medium">
-            {searchQuery ? `Search: "${searchQuery}"` : 'All Products'}
+            {searchQuery ? `Search: "${searchQuery}"` : t('products.allProducts')}
           </span>
         </div>
         <h1 className="text-2xl font-bold text-gray-900">
           {searchQuery ? (
-            <>Search results for &ldquo;{searchQuery}&rdquo;</>
+            <>{t('products.searchResults')} &ldquo;{searchQuery}&rdquo;</>
           ) : (
-            'All Products'
+            t('products.allProducts')
           )}
         </h1>
         {!loading && (
           <p className="text-sm text-gray-500 mt-1">
-            Showing {Math.min((page - 1) * ITEMS_PER_PAGE + 1, totalProducts)}
+            {t('products.showing')} {Math.min((page - 1) * ITEMS_PER_PAGE + 1, totalProducts)}
             {' - '}
-            {Math.min(page * ITEMS_PER_PAGE, totalProducts)} of {totalProducts} results
+            {Math.min(page * ITEMS_PER_PAGE, totalProducts)} {t('products.of')} {totalProducts} {t('products.results')}
           </p>
         )}
       </div>
@@ -249,12 +251,12 @@ export default function ProductListPage() {
             <SheetTrigger asChild>
               <Button variant="outline" size="sm" className="lg:hidden">
                 <SlidersHorizontal className="w-4 h-4 mr-2" />
-                Filters
+                {t('products.filters')}
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-80">
               <SheetHeader>
-                <SheetTitle>Filters</SheetTitle>
+                <SheetTitle>{t('products.filters')}</SheetTitle>
               </SheetHeader>
               <div className="mt-4 overflow-y-auto max-h-[calc(100vh-8rem)] custom-scrollbar">
                 <FilterContent />
@@ -264,14 +266,14 @@ export default function ProductListPage() {
 
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-[180px] h-9 text-sm">
-              <SelectValue placeholder="Sort by" />
+              <SelectValue placeholder={t('products.sortBy')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="featured">Featured</SelectItem>
-              <SelectItem value="price-asc">Price: Low to High</SelectItem>
-              <SelectItem value="price-desc">Price: High to Low</SelectItem>
-              <SelectItem value="rating">Top Rated</SelectItem>
-              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="featured">{t('products.featured')}</SelectItem>
+              <SelectItem value="price-asc">{t('products.priceLowHigh')}</SelectItem>
+              <SelectItem value="price-desc">{t('products.priceHighLow')}</SelectItem>
+              <SelectItem value="rating">{t('products.topRated')}</SelectItem>
+              <SelectItem value="newest">{t('products.newest')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -284,7 +286,7 @@ export default function ProductListPage() {
             onClick={clearFilters}
           >
             <X className="w-4 h-4 mr-1" />
-            Clear filters
+            {t('products.clearFiltersShort')}
           </Button>
         )}
       </div>
@@ -354,15 +356,15 @@ export default function ProductListPage() {
               <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                 <PackageSearch className="w-10 h-10 text-gray-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">No products found</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">{t('products.noProducts')}</h3>
               <p className="text-gray-500 text-sm mb-4">
-                Try adjusting your filters or search terms
+                {t('products.noProductsDesc')}
               </p>
               <Button
                 variant="outline"
                 onClick={clearFilters}
               >
-                Clear Filters
+                {t('products.clearFilters')}
               </Button>
             </div>
           ) : (
@@ -390,7 +392,7 @@ export default function ProductListPage() {
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    Previous
+                    {t('products.previous')}
                   </Button>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -423,7 +425,7 @@ export default function ProductListPage() {
                     disabled={page === totalPages}
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   >
-                    Next
+                    {t('products.next')}
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>

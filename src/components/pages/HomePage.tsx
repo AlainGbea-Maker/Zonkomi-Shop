@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useAppStore, useRecentlyViewedStore, type Product, type Category } from '@/lib/store'
 import ProductCard from '@/components/ui/ProductCard'
 import { ArrowRight, Shield, RotateCcw, Award, CreditCard, Package, Users, Star, TrendingUp, Gift, Zap, Clock, Trash2, Quote, MapPin, Timer, Flame } from 'lucide-react'
-import { useLanguageStore, translations } from '@/lib/language-store'
+import { useT } from '@/lib/language-store'
 
 function parseImages(images: string | null | undefined): string[] {
   if (!images) return []
@@ -110,8 +110,7 @@ function getDefaultEmoji(index: number) {
 export default function HomePage() {
   const { navigate } = useAppStore()
   const recentlyViewedStore = useRecentlyViewedStore()
-  const { language } = useLanguageStore()
-  const t = (key: string) => translations[language][key] || key
+  const t = useT()
   const [categories, setCategories] = useState<Category[]>([])
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
   const [dealProduct, setDealProduct] = useState<Product | null>(null)
@@ -391,7 +390,7 @@ export default function HomePage() {
                 {/* Product Details - Large Typography */}
                 <div className="flex-1 p-6 md:p-10 lg:p-12 flex flex-col justify-center">
                   <p className="text-[#C59F00] text-sm font-semibold uppercase tracking-wide mb-2">
-                    Today&apos;s Best Deal
+                    {t('home.todaysBestDeal')}
                   </p>
                   <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
                     {dealProduct.name}
@@ -414,7 +413,7 @@ export default function HomePage() {
                     </div>
                     {dealProduct.originalPrice && dealProduct.originalPrice > dealProduct.price && (
                       <p className="text-emerald-400 text-sm mt-1 font-medium">
-                        You save GH₵{(dealProduct.originalPrice - dealProduct.price).toFixed(2)}
+                        {t('home.youSave')} GH₵{(dealProduct.originalPrice - dealProduct.price).toFixed(2)}
                       </p>
                     )}
                   </div>
@@ -479,7 +478,7 @@ export default function HomePage() {
               className="border-[#C59F00]/30 text-[#C59F00] hover:bg-yellow-50 rounded-full"
               onClick={() => navigate('products')}
             >
-              View All <ArrowRight className="ml-1 w-4 h-4" />
+              {t('home.viewAll')} <ArrowRight className="ml-1 w-4 h-4" />
             </Button>
           </motion.div>
 
@@ -527,8 +526,8 @@ export default function HomePage() {
                   <Zap className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-white">New Arrivals</h2>
-                  <p className="text-sm text-gray-400 mt-0.5">Fresh stock, just landed</p>
+                  <h2 className="text-2xl md:text-3xl font-bold text-white">{t('home.newArrivals')}</h2>
+                  <p className="text-sm text-gray-400 mt-0.5">{t('home.freshStock')}</p>
                 </div>
               </div>
               <Button
@@ -536,7 +535,7 @@ export default function HomePage() {
                 className="border-white/20 text-white hover:bg-white/10 rounded-full"
                 onClick={() => { useAppStore.getState().setSortBy('newest'); navigate('products') }}
               >
-                View All <ArrowRight className="ml-1 w-4 h-4" />
+                {t('home.viewAll')} <ArrowRight className="ml-1 w-4 h-4" />
               </Button>
             </motion.div>
             <motion.div
@@ -566,15 +565,15 @@ export default function HomePage() {
             className="flex items-center justify-between mb-6"
           >
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Shop by Category</h2>
-              <p className="text-sm text-gray-500 mt-1">Find exactly what you need</p>
+              <h2 className="text-2xl font-bold text-gray-900">{t('home.shopByCategory')}</h2>
+              <p className="text-sm text-gray-500 mt-1">{t('home.findExactly')}</p>
             </div>
             <Button
               variant="ghost"
               className="text-[#C59F00] hover:text-[#C59F00] hover:bg-yellow-50"
               onClick={() => navigate('products')}
             >
-              View All <ArrowRight className="ml-1 w-4 h-4" />
+              {t('home.viewAll')} <ArrowRight className="ml-1 w-4 h-4" />
             </Button>
           </motion.div>
 
@@ -621,7 +620,7 @@ export default function HomePage() {
                         </h3>
                         {cat._count?.products && (
                           <p className="text-xs text-gray-500 mt-0.5">
-                            {cat._count.products} products
+                            {cat._count.products} {t('home.products')}
                           </p>
                         )}
                       </div>
@@ -647,8 +646,8 @@ export default function HomePage() {
               <div className="flex items-center gap-2">
                 <Clock className="w-5 h-5 text-[#C59F00]" />
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Recently Viewed</h2>
-                  <p className="text-sm text-gray-500 mt-1">Products you've been checking out</p>
+                  <h2 className="text-2xl font-bold text-gray-900">{t('home.recentlyViewed')}</h2>
+                  <p className="text-sm text-gray-500 mt-1">{t('home.recentlyViewedDesc')}</p>
                 </div>
               </div>
               <Button
@@ -661,7 +660,7 @@ export default function HomePage() {
                 }}
               >
                 <Trash2 className="w-4 h-4 mr-1" />
-                Clear History
+                {t('home.clearHistory')}
               </Button>
             </motion.div>
             <motion.div
@@ -704,15 +703,13 @@ export default function HomePage() {
                 className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FCD116]/15 border border-[#FCD116]/30 rounded-full mb-4"
               >
                 <Gift className="w-4 h-4 text-[#FCD116]" />
-                <span className="text-sm font-medium text-[#FCD116]">Exclusive Rewards</span>
+                <span className="text-sm font-medium text-[#FCD116]">{t('home.exclusiveRewards')}</span>
               </motion.div>
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 leading-tight">
-                Spin & Win <span className="text-[#FCD116]">Exclusive Discounts</span>
+                {t('home.spinWinTitle')}
               </h2>
               <p className="text-gray-300 mb-6 max-w-md mx-auto lg:mx-0">
-                Fill your cart with GH₵799+ worth of premium refurbished tech and unlock our
-                daily Spin & Win wheel. Win up to <span className="text-[#FCD116] font-semibold">20% off</span>,
-                free shipping, or fixed-amount discounts on your order!
+                {t('home.spinWinDesc')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Button
@@ -721,7 +718,7 @@ export default function HomePage() {
                   onClick={() => navigate('products')}
                 >
                   <Zap className="w-5 h-5 mr-2" />
-                  Start Building Your Cart
+                  {t('home.startBuildingCart')}
                 </Button>
                 <Button
                   size="lg"
@@ -729,7 +726,7 @@ export default function HomePage() {
                   className="border-[#FCD116]/40 text-[#FCD116] hover:bg-[#FCD116]/10 rounded-full px-8 h-12 text-base"
                   onClick={() => navigate('products')}
                 >
-                  Browse Deals
+                  {t('home.browseDeals')}
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </div>
@@ -737,10 +734,10 @@ export default function HomePage() {
             {/* Right - Prize Cards */}
             <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto lg:mx-0 lg:ml-auto">
               {[
-                { prize: '20% Off', color: 'from-red-600 to-red-400', emoji: '🔥', desc: 'Maximum savings' },
-                { prize: 'Free Shipping', color: 'from-emerald-600 to-teal-400', emoji: '🚚', desc: 'Delivered free' },
-                { prize: '15% Off', color: 'from-amber-600 to-yellow-400', emoji: '💎', desc: 'Premium discount' },
-                { prize: 'GH₵25 Off', color: 'from-yellow-500 to-amber-400', emoji: '💰', desc: 'Cash savings' },
+                { prize: '20% Off', color: 'from-red-600 to-red-400', emoji: '🔥', desc: t('home.maxSavings') },
+                { prize: 'Free Shipping', color: 'from-emerald-600 to-teal-400', emoji: '🚚', desc: t('home.deliveredFree') },
+                { prize: '15% Off', color: 'from-amber-600 to-yellow-400', emoji: '💎', desc: t('home.premiumDiscount') },
+                { prize: 'GH₵25 Off', color: 'from-yellow-500 to-amber-400', emoji: '💰', desc: t('home.cashSavings') },
               ].map((item, i) => (
                 <motion.div
                   key={item.prize}
@@ -769,8 +766,8 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-8"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">What Our Customers Say</h2>
-            <p className="text-sm text-gray-500 mt-2">Trusted by thousands of shoppers across Ghana</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">{t('home.customersSay')}</h2>
+            <p className="text-sm text-gray-500 mt-2">{t('home.trustedBy')}</p>
           </motion.div>
           <motion.div
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -833,10 +830,10 @@ export default function HomePage() {
             viewport={{ once: true }}
           >
             {[
-              { icon: Package, value: siteStats ? siteStats.products.toLocaleString() : '...', label: 'Products', action: () => navigate('products') },
-              { icon: Users, value: siteStats ? `${siteStats.customers.toLocaleString()}+` : '...', label: 'Happy Customers', action: () => navigate('info', { infoSlug: 'about' }) },
-              { icon: Star, value: siteStats ? siteStats.avgRating : '...', label: 'Average Rating', action: () => navigate('products') },
-              { icon: TrendingUp, value: siteStats ? `${siteStats.orders.toLocaleString()}+` : '...', label: 'Orders Shipped', action: () => navigate('info', { infoSlug: 'about' }) },
+              { icon: Package, value: siteStats ? siteStats.products.toLocaleString() : '...', label: t('home.statsProducts'), action: () => navigate('products') },
+              { icon: Users, value: siteStats ? `${siteStats.customers.toLocaleString()}+` : '...', label: t('home.statsCustomers'), action: () => navigate('info', { infoSlug: 'about' }) },
+              { icon: Star, value: siteStats ? siteStats.avgRating : '...', label: t('home.statsRating'), action: () => navigate('products') },
+              { icon: TrendingUp, value: siteStats ? `${siteStats.orders.toLocaleString()}+` : '...', label: t('home.statsOrders'), action: () => navigate('info', { infoSlug: 'about' }) },
             ].map((stat) => (
               <motion.div
                 key={stat.label}
@@ -866,11 +863,10 @@ export default function HomePage() {
             viewport={{ once: true }}
           >
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
-              Ready to Save Big?
+              {t('home.readyToSave')}
             </h2>
             <p className="text-white/90 mb-6 max-w-lg mx-auto">
-              Join thousands of smart shoppers who choose refurbished. Quality guaranteed,
-              wallet approved.
+              {t('home.readyDesc')}
             </p>
             <Button
               size="lg"

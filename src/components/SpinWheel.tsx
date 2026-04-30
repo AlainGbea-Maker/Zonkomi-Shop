@@ -14,6 +14,7 @@ import {
   Check,
 } from 'lucide-react'
 import { useCartStore } from '@/lib/store'
+import { useT } from '@/lib/language-store'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -157,6 +158,7 @@ function generateLEDPositions(count: number, radius: number): { x: number; y: nu
 
 export default function SpinWheel() {
   const getSubtotal = useCartStore((s) => s.getSubtotal)
+  const t = useT()
   const subtotal = getSubtotal()
   const isEligible = subtotal >= SPIN_THRESHOLD
 
@@ -499,7 +501,7 @@ export default function SpinWheel() {
               {/* Tooltip */}
               <div className="absolute bottom-full right-0 mb-2 w-48 p-2.5 bg-[#002B1B] text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                 <p className="font-bold text-[#FCD116]">You qualify! 🎉</p>
-                <p className="text-gray-300 mt-0.5">Spin for exclusive discounts</p>
+                <p className="text-gray-300 mt-0.5">{t('spin.desc')}</p>
                 <div className="absolute top-full right-6 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#002B1B]" />
               </div>
             </div>
@@ -683,11 +685,11 @@ export default function SpinWheel() {
 
                 <div className="relative">
                   <Gift className="w-10 h-10 text-[#FCD116] mx-auto mb-2" />
-                  <h2 className="text-2xl font-bold text-white">Spin & Win!</h2>
+                  <h2 className="text-2xl font-bold text-white">{t('spin.title')}</h2>
                   <p className="text-sm text-gray-300 mt-1">
                     {modalSource === 'exit'
                       ? "Wait! Don't miss your discount!"
-                      : 'Spin once daily for exclusive discounts'}
+                      : t('spin.desc')}
                   </p>
                 </div>
               </div>

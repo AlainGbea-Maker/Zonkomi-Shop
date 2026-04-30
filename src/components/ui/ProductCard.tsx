@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useAppStore, useCartStore, type Product } from '@/lib/store'
+import { useT } from '@/lib/language-store'
 import StarRating from '@/components/ui/StarRating'
 
 const gradients = [
@@ -87,6 +88,7 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const { navigate } = useAppStore()
   const { addItem } = useCartStore()
+  const t = useT()
   const discount = getDiscount(product.price, product.originalPrice)
 
   // Quick view state
@@ -184,12 +186,12 @@ export default function ProductCard({ product }: ProductCardProps) {
               )}
               {product.stock <= 3 && product.stock > 0 && (
                 <Badge className="absolute top-2 right-2 bg-yellow-500 text-white text-[10px] px-1.5 py-0.5">
-                  Only {product.stock} left
+                  {t('product.onlyLeft', { n: product.stock })}
                 </Badge>
               )}
               {product.stock === 0 && (
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                  <Badge className="bg-gray-800 text-white text-sm">Out of Stock</Badge>
+                  <Badge className="bg-gray-800 text-white text-sm">{t('product.outOfStock')}</Badge>
                 </div>
               )}
 
@@ -199,7 +201,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 className="absolute inset-x-0 bottom-0 bg-black/60 text-white text-xs font-medium py-2 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-black/70"
               >
                 <Eye className="w-3.5 h-3.5" />
-                Quick View
+                {t('product.quickView')}
               </button>
             </div>
 
@@ -242,7 +244,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                   disabled={product.stock === 0}
                 >
                   <ShoppingCart className="w-3.5 h-3.5 mr-1" />
-                  Add to Cart
+                  {t('product.addToCart')}
                 </Button>
                 {/* Mobile quick view button */}
                 <Button
@@ -250,7 +252,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                   variant="outline"
                   className="h-8 w-8 p-0 rounded-full border-gray-200 flex-shrink-0 md:hidden"
                   onClick={handleQuickView}
-                  aria-label="Quick view"
+                  aria-label={t('product.quickView')}
                 >
                   <Eye className="w-3.5 h-3.5" />
                 </Button>
@@ -264,7 +266,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <Dialog open={quickViewOpen} onOpenChange={setQuickViewOpen}>
         <DialogContent className="sm:max-w-2xl p-0 gap-0 max-h-[90vh] overflow-hidden">
           <DialogTitle className="sr-only">{product.name}</DialogTitle>
-          <DialogDescription className="sr-only">Quick view of {product.name}</DialogDescription>
+          <DialogDescription className="sr-only">{t('product.quickView')} - {product.name}</DialogDescription>
 
           <ScrollArea className="max-h-[90vh]">
             {qvLoading ? (
@@ -317,7 +319,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                           {qvProduct.condition}
                         </Badge>
                         {qvProduct.brand && (
-                          <span className="text-xs text-gray-500">by <span className="font-medium text-gray-700">{qvProduct.brand}</span></span>
+                          <span className="text-xs text-gray-500">{t('product.by')} <span className="font-medium text-gray-700">{qvProduct.brand}</span></span>
                         )}
                         {qvProduct.sku && (
                           <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">{qvProduct.sku}</span>
@@ -348,7 +350,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                         </div>
                         {qvDiscount > 0 && (
                           <Badge className="mt-1 bg-red-500 text-white text-[10px]">
-                            Save {qvDiscount}%
+                            {t('product.save')} {qvDiscount}%
                           </Badge>
                         )}
                       </div>
@@ -366,18 +368,18 @@ export default function ProductCard({ product }: ProductCardProps) {
                           <p className="text-xs text-green-600 font-medium flex items-center gap-1">
                             <Package className="w-3.5 h-3.5" />
                             {qvProduct.stock <= 5
-                              ? `Only ${qvProduct.stock} left in stock`
-                              : 'In Stock'}
+                              ? t('product.onlyLeftInStock', { n: qvProduct.stock })
+                              : t('product.inStock')}
                           </p>
                         ) : (
-                          <p className="text-xs text-red-600 font-medium">Out of Stock</p>
+                          <p className="text-xs text-red-600 font-medium">{t('product.outOfStock')}</p>
                         )}
                       </div>
 
                       {/* Quantity Selector */}
                       {qvProduct.stock > 0 && (
                         <div className="flex items-center gap-3">
-                          <span className="text-sm font-medium text-gray-700">Qty:</span>
+                          <span className="text-sm font-medium text-gray-700">{t('product.qty')}</span>
                           <div className="flex items-center border rounded-lg overflow-hidden">
                             <button
                               onClick={() => setQvQuantity((q) => Math.max(1, q - 1))}
@@ -407,14 +409,14 @@ export default function ProductCard({ product }: ProductCardProps) {
                         disabled={qvProduct.stock === 0}
                       >
                         <ShoppingCart className="w-4 h-4 mr-2" />
-                        Add to Cart
+                        {t('product.addToCart')}
                       </Button>
                       <Button
                         variant="outline"
                         className="w-full border-[#002B1B] text-[#002B1B] hover:bg-[#002B1B] hover:text-white rounded-full h-10 text-sm font-medium"
                         onClick={handleQvViewFull}
                       >
-                        View Full Details
+                        {t('product.viewFullDetails')}
                       </Button>
                     </div>
                   </div>

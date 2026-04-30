@@ -18,6 +18,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useAppStore, useCartStore, useUserStore, type Product, type Review } from '@/lib/store'
+import { useT } from '@/lib/language-store'
 import StarRating from '@/components/ui/StarRating'
 import ProductCard from '@/components/ui/ProductCard'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
@@ -66,7 +67,7 @@ function getEmojiFallback(images: string | null | undefined, fallback = '📦'):
 }
 
 // Format relative date nicely
-function formatReviewDate(dateStr: string): string {
+function formatReviewDate(dateStr: string, t: (key: string, params?: Record<string, string | number>) => string): string {
   const date = new Date(dateStr)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
@@ -78,12 +79,12 @@ function formatReviewDate(dateStr: string): string {
   const diffMonths = Math.floor(diffDays / 30)
   const diffYears = Math.floor(diffDays / 365)
 
-  if (diffSeconds < 60) return 'Just now'
-  if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
-  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
-  if (diffWeeks < 5) return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''} ago`
-  if (diffMonths < 12) return `${diffMonths} month${diffMonths > 1 ? 's' : ''} ago`
+  if (diffSeconds < 60) return t('detail.justNow')
+  if (diffMinutes < 60) return `${diffMinutes}m ${t('detail.ago')}`
+  if (diffHours < 24) return `${diffHours}h ${t('detail.ago')}`
+  if (diffDays < 7) return `${diffDays}d ${t('detail.ago')}`
+  if (diffWeeks < 5) return `${diffWeeks}w ${t('detail.ago')}`
+  if (diffMonths < 12) return `${diffMonths}mo ${t('detail.ago')}`
 
   // For older reviews, show formatted date
   return date.toLocaleDateString('en-US', {
@@ -147,6 +148,7 @@ export default function ProductDetailPage() {
   const { selectedProductId, navigate } = useAppStore()
   const { addItem } = useCartStore()
   const { user, token } = useUserStore()
+  const t = useT()
   const [product, setProduct] = useState<Product | null>(null)
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -252,8 +254,8 @@ export default function ProductDetailPage() {
       setReviewComment('')
 
       toast({
-        title: 'Review submitted!',
-        description: 'Thank you for your feedback.',
+        title: t('detail.reviewSubmitted'),
+        description: t('detail.thankYouFeedback'),
       })
 
       // Refresh product data to show the new review
@@ -321,7 +323,7 @@ export default function ProductDetailPage() {
     <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
       <Breadcrumbs
         items={[
-          { label: product.category?.name || 'Products', action: () => navigate('products') },
+          { label: product.category?.name || t('breadcrumbs.products'), action: () => navigate('products') },
           { label: product.name },
         ]}
       />
@@ -368,7 +370,7 @@ export default function ProductDetailPage() {
                 {product.condition}
               </Badge>
               {product.brand && (
-                <span className="text-sm text-gray-500">by <span className="font-medium text-gray-700">{product.brand}</span></span>
+                <span className="text-sm text-gray-500">{t('product.by')} <span className="font-medium text-gray-700">{product.brand}</span></span>
               )}
               {product.sku && (
                 <span className="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-0.5 rounded">{product.sku}</span>
@@ -384,7 +386,7 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-2">
               <StarRating rating={product.rating} size="md" showValue />
               <span className="text-sm text-gray-500">
-                ({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})
+                ({product.reviewCount} {product.reviewCount === 1 ? t('detail.review') : t('detail.reviews')})
               </span>
             </div>
 
@@ -405,10 +407,10 @@ export default function ProductDetailPage() {
               {getDiscount() > 0 && (
                 <div className="mt-1 flex items-center gap-2">
                   <Badge className="bg-red-500 text-white text-xs">
-                    Save {getDiscount()}%
+                    {t('product.save')} {getDiscount()}%
                   </Badge>
                   <span className="text-sm text-green-600 font-medium">
-                    You save GH₵{getSavings()}
+                    GH₵{getSavings()}
                   </span>
                 </div>
               )}
@@ -428,15 +430,15 @@ export default function ProductDetailPage() {
               <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50">
                 <Shield className="w-5 h-5 text-green-600" />
                 <div>
-                  <p className="text-xs font-semibold text-green-800">Warranty</p>
-                  <p className="text-xs text-green-600">{product.warranty || '90-Day Warranty'}</p>
+                  <p className="text-xs font-semibold text-green-800">{t('detail.warranty')}</p>
+                  <p className="text-xs text-green-600">{product.warranty || t('detail.defaultWarranty')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50">
                 <RotateCcw className="w-5 h-5 text-blue-600" />
                 <div>
-                  <p className="text-xs font-semibold text-blue-800">Returns</p>
-                  <p className="text-xs text-blue-600">30-Day Free Returns</p>
+                  <p className="text-xs font-semibold text-blue-800">{t('detail.returns')}</p>
+                  <p className="text-xs text-blue-600">{t('detail.freeReturns')}</p>
                 </div>
               </div>
             </div>
@@ -445,17 +447,17 @@ export default function ProductDetailPage() {
             <div>
               {product.stock > 0 ? (
                 <p className="text-sm text-green-600 font-medium">
-                  {product.stock <= 5 ? `Only ${product.stock} left in stock - order soon!` : 'In Stock'}
+                  {product.stock <= 5 ? t('detail.onlyLeftOrderSoon', { n: product.stock }) : t('product.inStock')}
                 </p>
               ) : (
-                <p className="text-sm text-red-600 font-medium">Out of Stock</p>
+                <p className="text-sm text-red-600 font-medium">{t('detail.outOfStock')}</p>
               )}
             </div>
 
             {/* Quantity */}
             {product.stock > 0 && (
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-gray-700">Quantity:</span>
+                <span className="text-sm font-medium text-gray-700">{t('detail.quantity')}</span>
                 <div className="flex items-center border rounded-lg overflow-hidden">
                   <button
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -485,7 +487,7 @@ export default function ProductDetailPage() {
                 disabled={product.stock === 0}
               >
                 <ShoppingCart className="w-5 h-5 mr-2" />
-                Add to Cart
+                {t('product.addToCart')}
               </Button>
               <Button
                 size="lg"
@@ -494,7 +496,7 @@ export default function ProductDetailPage() {
                 disabled={product.stock === 0}
               >
                 <Zap className="w-5 h-5 mr-2" />
-                Buy Now
+                {t('detail.buyNow')}
               </Button>
             </div>
 
@@ -505,8 +507,8 @@ export default function ProductDetailPage() {
                   <Gift className="w-5 h-5 text-[#FCD116]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white">Spin & Win up to 20% Off!</p>
-                  <p className="text-xs text-gray-400">Add GH₵799+ to your cart to unlock</p>
+                  <p className="text-sm font-semibold text-white">{t('detail.spinWinCTA')}</p>
+                  <p className="text-xs text-gray-400">{t('detail.spinWinUnlock')}</p>
                 </div>
               </div>
             </div>
@@ -514,7 +516,7 @@ export default function ProductDetailPage() {
             {/* Shipping */}
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Truck className="w-4 h-4" />
-              Free shipping on orders over GH₵ 500
+              {t('detail.freeShippingOver')}
             </div>
           </div>
         </motion.div>
@@ -528,19 +530,19 @@ export default function ProductDetailPage() {
               value="description"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#FCD116] data-[state=active]:bg-transparent data-[state=active]:shadow-none text-gray-500 data-[state=active]:text-[#C59F00] pb-3 px-4"
             >
-              Description
+              {t('detail.description')}
             </TabsTrigger>
             <TabsTrigger
               value="specs"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#FCD116] data-[state=active]:bg-transparent data-[state=active]:shadow-none text-gray-500 data-[state=active]:text-[#C59F00] pb-3 px-4"
             >
-              Specifications
+              {t('detail.specifications')}
             </TabsTrigger>
             <TabsTrigger
               value="reviews"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#FCD116] data-[state=active]:bg-transparent data-[state=active]:shadow-none text-gray-500 data-[state=active]:text-[#C59F00] pb-3 px-4"
             >
-              Reviews ({product.reviewCount})
+              {t('detail.reviewsTab')} ({product.reviewCount})
             </TabsTrigger>
           </TabsList>
 
@@ -574,7 +576,7 @@ export default function ProductDetailPage() {
                   </Table>
                 ) : (
                   <div className="p-6 text-center text-gray-500">
-                    No specifications available
+                    {t('detail.noSpecs')}
                   </div>
                 )}
               </CardContent>
@@ -594,13 +596,13 @@ export default function ProductDetailPage() {
                     <CardContent className="p-6">
                       <div className="flex items-center gap-2 mb-4">
                         <MessageSquare className="w-5 h-5 text-[#C59F00]" />
-                        <h3 className="text-lg font-semibold text-gray-900">Write a Review</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">{t('detail.writeReview')}</h3>
                       </div>
 
                       {/* Star Rating Selector */}
                       <div className="mb-4">
                         <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                          Your Rating <span className="text-red-500">*</span>
+                          {t('detail.yourRating')} <span className="text-red-500">*</span>
                         </Label>
                         <InteractiveStarRating value={reviewRating} onChange={setReviewRating} />
                       </div>
@@ -608,11 +610,11 @@ export default function ProductDetailPage() {
                       {/* Title Input */}
                       <div className="mb-4">
                         <Label htmlFor="review-title" className="text-sm font-medium text-gray-700 mb-2 block">
-                          Title <span className="text-gray-400">(optional)</span>
+                          {t('detail.titleOptional')}
                         </Label>
                         <Input
                           id="review-title"
-                          placeholder="Summarize your experience..."
+                          placeholder={t('detail.titlePlaceholder')}
                           value={reviewTitle}
                           onChange={(e) => setReviewTitle(e.target.value)}
                           maxLength={100}
@@ -623,11 +625,11 @@ export default function ProductDetailPage() {
                       {/* Comment Textarea */}
                       <div className="mb-4">
                         <Label htmlFor="review-comment" className="text-sm font-medium text-gray-700 mb-2 block">
-                          Your Review <span className="text-red-500">*</span>
+                          {t('detail.yourReview')} <span className="text-red-500">*</span>
                         </Label>
                         <Textarea
                           id="review-comment"
-                          placeholder="What did you like or dislike about this product? How do you use it?"
+                          placeholder={t('detail.reviewPlaceholder')}
                           value={reviewComment}
                           onChange={(e) => setReviewComment(e.target.value)}
                           rows={4}
@@ -648,12 +650,12 @@ export default function ProductDetailPage() {
                         {submittingReview ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Submitting...
+                            {t('detail.submitting')}
                           </>
                         ) : (
                           <>
                             <Send className="w-4 h-4 mr-2" />
-                            Submit Review
+                            {t('detail.submitReview')}
                           </>
                         )}
                       </Button>
@@ -673,10 +675,10 @@ export default function ProductDetailPage() {
                           <LogIn className="w-6 h-6 text-[#002B1B]" />
                         </div>
                         <h3 className="text-base font-semibold text-gray-900 mb-1">
-                          Sign in to write a review
+                          {t('detail.signInToReview')}
                         </h3>
                         <p className="text-sm text-gray-500 mb-4">
-                          Share your experience with other shoppers
+                          {t('detail.shareExperience')}
                         </p>
                         <Button
                           variant="outline"
@@ -684,7 +686,7 @@ export default function ProductDetailPage() {
                           onClick={() => navigate('login')}
                         >
                           <LogIn className="w-4 h-4 mr-2" />
-                          Sign In
+                          {t('detail.signIn')}
                         </Button>
                       </div>
                     </CardContent>
@@ -702,7 +704,7 @@ export default function ProductDetailPage() {
                         <div className="text-center">
                           <p className="text-4xl font-bold text-gray-900">{product.rating.toFixed(1)}</p>
                           <StarRating rating={product.rating} size="md" className="mt-1" />
-                          <p className="text-xs text-gray-500 mt-1">{product.reviewCount} review{product.reviewCount !== 1 ? 's' : ''}</p>
+                          <p className="text-xs text-gray-500 mt-1">{product.reviewCount} {product.reviewCount !== 1 ? t('detail.reviews') : t('detail.review')}</p>
                         </div>
                       </div>
 
@@ -729,11 +731,11 @@ export default function ProductDetailPage() {
                                     {/* Verified Purchase badge */}
                                     <Badge variant="secondary" className="bg-green-50 text-green-700 text-[10px] px-1.5 py-0 h-4 flex items-center gap-0.5">
                                       <CheckCircle2 className="w-2.5 h-2.5" />
-                                      Verified Purchase
+                                      {t('detail.verifiedPurchase')}
                                     </Badge>
                                   </div>
                                   <span className="text-xs text-gray-400">
-                                    {formatReviewDate(review.createdAt)}
+                                    {formatReviewDate(review.createdAt, t)}
                                   </span>
                                 </div>
                               </div>
@@ -756,10 +758,10 @@ export default function ProductDetailPage() {
                         <MessageSquare className="w-10 h-10 text-gray-300" />
                       </div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        No reviews yet
+                        {t('detail.noReviewsYet')}
                       </h3>
                       <p className="text-sm text-gray-500 max-w-sm mx-auto">
-                        Be the first to share your experience with this product. Your feedback helps other shoppers make informed decisions.
+                        {t('detail.beFirstReview')}
                       </p>
                     </div>
                   )}
@@ -773,7 +775,7 @@ export default function ProductDetailPage() {
       {/* Related Products */}
       {relatedProducts.length > 0 && (
         <div className="mt-12">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">You May Also Like</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-6">{t('detail.youMayAlsoLike')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {relatedProducts.map((p) => (
               <ProductCard key={p.id} product={p} />

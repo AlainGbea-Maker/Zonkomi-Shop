@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAppStore, useUserStore, type Order } from '@/lib/store'
+import { useT } from '@/lib/language-store'
 import {
   Package,
   ChevronRight,
@@ -41,6 +42,7 @@ function getStatusColor(status: string) {
 export default function OrderHistoryPage() {
   const { navigate } = useAppStore()
   const { user } = useUserStore()
+  const t = useT()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
@@ -83,7 +85,7 @@ export default function OrderHistoryPage() {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-6 md:py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">My Orders</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('orders.title')}</h1>
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-32 rounded-xl" />
@@ -95,19 +97,20 @@ export default function OrderHistoryPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 md:py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">My Orders</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('orders.title')}</h1>
 
       {orders.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
             <ShoppingBag className="w-10 h-10 text-gray-400" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Orders Yet</h2>
-          <p className="text-gray-500 mb-6">When you place your first order, it will appear here.</p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('orders.empty')}</h2>
+          <p className="text-gray-500 mb-6">{t('orders.emptyDesc')}</p>
           <Button
             className="bg-[#FCD116] hover:bg-[#D4AA00] text-white rounded-full px-8"
             onClick={() => navigate('products')}
           >
+            <ShoppingBag className="w-4 h-4 mr-2" />
             Start Shopping
           </Button>
         </div>
@@ -140,7 +143,7 @@ export default function OrderHistoryPage() {
                             <Calendar className="w-3.5 h-3.5" />
                             {new Date(order.createdAt).toLocaleDateString()}
                           </span>
-                          <span>{order.orderItems?.length || 0} items</span>
+                          <span>{order.orderItems?.length || 0} {t('orders.items')}</span>
                           <span className="font-medium text-[#C59F00]">
                             GH₵{order.total.toFixed(2)}
                           </span>
@@ -190,7 +193,7 @@ export default function OrderHistoryPage() {
                             onClick={() => navigate('order-detail', { orderNumber: order.orderNumber })}
                           >
                             <Eye className="w-4 h-4 mr-2" />
-                            View Order Details
+                            {t('orders.viewDetails')}
                           </Button>
                         </div>
                       </motion.div>
