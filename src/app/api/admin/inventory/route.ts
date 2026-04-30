@@ -40,7 +40,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Quantity must be a valid number' }, { status: 400 })
       }
 
-      const performedBy = payload.email || payload.name || 'admin'
+      const performedBy = payload.email || 'admin'
       const reason = body.reason || (quantity > 0 ? 'Manual restock' : 'Manual reduction')
 
       const result = adjustStock(body.productId, quantity, reason, performedBy)

@@ -266,14 +266,14 @@ function formatPaymentStatus(status: string): string {
 // ==================== HELPERS ====================
 
 function ProductImage({ src, className = '' }: { src: string; className?: string }) {
-  if (!src || src === 'undefined') {
+  if (!src || src === 'undefined' || src === '📦') {
     return (
       <div className={`flex items-center justify-center bg-gray-100 text-gray-400 ${className}`}>
         <ImageIcon className="w-6 h-6" />
       </div>
     )
   }
-  if (src.startsWith('/uploads/') || src.startsWith('http')) {
+  if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) {
     return <img src={src} alt="" className={`object-cover ${className}`} />
   }
   return (
@@ -343,6 +343,7 @@ export default function AdminDashboard() {
   const [stockAdjustReason, setStockAdjustReason] = useState('')
   const [stockAdjustCustomReason, setStockAdjustCustomReason] = useState('')
   const [stockAdjustSaving, setStockAdjustSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState('overview')
 
   // ==================== DATA FETCHING ====================
 
@@ -833,7 +834,7 @@ export default function AdminDashboard() {
         )}
 
         {/* ===== TABS ===== */}
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="bg-white border border-gray-200 p-1 h-auto flex-wrap gap-1 rounded-xl">
             <TabsTrigger
               value="overview"
@@ -903,6 +904,7 @@ export default function AdminDashboard() {
                               setOrderFilter('all')
                               setOrderSearch('')
                               setExpandedOrderId(order.id)
+                              setActiveTab('orders')
                             }}
                           >
                             <div className="flex-1 min-w-0">
